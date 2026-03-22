@@ -13,11 +13,10 @@ export async function POST(request) {
 
     switch (provider) {
       case 'fal-fast-svd':
-        return await falGenerate(prompt, apiKey, 'fal-ai/fast-svd-lcm', {
-          image_url: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1280',
-          motion_bucket_id: 127,
-          cond_aug: 0.02,
-          steps: 4,
+        return await falGenerate(prompt, apiKey, 'fal-ai/ltx-video', {
+          prompt: prompt,
+          aspect_ratio: '16:9',
+          duration: 5,
         });
 
       case 'fal-kling':

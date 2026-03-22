@@ -6,13 +6,13 @@ export async function POST(request) {
       return Response.json({ error: 'No ElevenLabs API key provided' }, { status: 400 });
     }
 
-    // Voice ID map based on voice style from brief analysis
+    // Use only free tier voices that work without subscription
     const voiceMap = {
-      'warm-female': 'EXAVITQu4vr4xnSDxMaL',
-      'authoritative-male': 'TxGEqnHWrfWFTfGW9XjX',
-      'energetic-neutral': 'VR6AewLTigWG4xSOukaG',
-      'calm-narrator': 'pNInz6obpgDQGcFmaJgB',
-      'youthful-female': 'jsCqWAovK2LkecY7zXl4',
+      'warm-female': 'cgSgspJ2msm6clMCkdW9',
+      'authoritative-male': 'onwK4e9ZLuTAKqWW03F9',
+      'energetic-neutral': 'N2lVS1w4EtoT3dr4eOWO',
+      'calm-narrator': 'CwhRBWXzGAHq8TQ4Fs17',
+      'youthful-female': 'FGY2WhTYpPnrIDTdsKH5',
       'deep-male': 'IKne3meq5aSn9XLyUdCD',
     };
 
@@ -36,10 +36,11 @@ export async function POST(request) {
 
     if (!res.ok) {
       const err = await res.json();
-      return Response.json({ error: err.detail?.message || 'Audio generation failed' }, { status: 500 });
+      return Response.json({
+        error: err.detail?.message || err.detail || JSON.stringify(err)
+      }, { status: 500 });
     }
 
-    // Convert audio to base64 to send back to browser
     const arrayBuffer = await res.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString('base64');
     const audioUrl = `data:audio/mpeg;base64,${base64}`;
