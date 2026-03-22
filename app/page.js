@@ -126,9 +126,10 @@ export default function Home() {
 
     const results = {};
 
-    if (falKey) {
+if (falKey) {
       try {
-        const res = await fetch('/api/generate-video', {
+        // Step 1 — submit job, get request ID back immediately
+        const submitRes = await fetch('/api/generate-video', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -137,9 +138,48 @@ export default function Home() {
             provider: videoProvider,
           }),
         });
-        const data = await res.json();
-        if (data.videoUrl) results.videoUrl = data.videoUrl;
-        else results.videoError = data.error || 'Video generation failed';
+        const submitData = await submitRes.json();
+
+        if (submitData.error) {
+          results.videoError = submitData.error;
+        } else {
+          // Step 2 — poll from browser until done (no server timeout risk)
+          const { requestId, modelPath, provider: prov } = submitData;
+          let attempts = 0;
+          const maxAttempts = 60; // 5 minutes at 5s intervals
+
+          while (attempts < maxAttempts) {
+            await new Promise(r => setTimeout(r, 5000));
+            attempts++;
+
+            const checkRes = await fetch('/api/check-video', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ requestId, modelPath, provider: prov, apiKey: falKey }),
+            });
+            const checkData = await checkRes.json();
+
+            if (checkData.status === 'done') {
+              results.videoUrl = checkData.videoUrl;
+              break;
+            }
+            if (checkData.status === 'error') {
+              results.videoError = checkData.error;
+              break;
+            }
+            // still pending — update UI with queue position if available
+            if (checkData.queuePosition !== undefined) {
+              setGeneratingMedia(prev => ({
+                ...prev,
+                [sceneNum]: { video: true, audio: false, queuePosition: checkData.queuePosition }
+              }));
+            }
+          }
+
+          if (!results.videoUrl && !results.videoError) {
+            results.videoError = 'Timed out after 5 minutes';
+          }
+        }
       } catch (err) {
         results.videoError = err.message;
       }
@@ -507,8 +547,11 @@ export default function Home() {
                           borderTopColor: '#fff', borderRadius: '50%',
                           animation: 'spin 0.8s linear infinite', margin: '0 auto 8px'
                         }} />
-                        <div style={{ fontSize: '11px', color: '#888' }}>Generating video...</div>
-                        <div style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>{providerLabel[videoProvider]}</div>
+                      <div style={{ fontSize: '11px', color: '#888' }}>Generating video...</div>
+                      <div style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>{providerLabel[videoProvider]}</div>
+                      {generating?.queuePosition > 0 && (
+                        <div style={{ fontSize: '10px', color: '#666', marginTop: '2px' }}>Queue position: {generating.queuePosition}</div>
+                      )}
                       </div>
                     ) : (
                       <div style={{ padding: '16px', textAlign: 'center' }}>
