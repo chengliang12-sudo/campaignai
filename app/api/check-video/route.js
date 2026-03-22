@@ -5,50 +5,36 @@ export async function POST(request) {
     const { requestId, modelPath, provider, apiKey } = await request.json();
 
     if (provider === 'fal') {
-      // Fal uses a universal status endpoint regardless of model
-      const statusRes = await fetch(
-        `https://queue.fal.run/requests/${requestId}/status`,
-        { headers: { 'Authorization': `Key ${apiKey}` } }
-      );
+      const statusUrl = `https://queue.fal.run/${modelPath}/requests/${requestId}/status`;
+
+      const statusRes = await fetch(statusUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Key ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
       const raw = await statusRes.text();
       let status;
       try {
         status = JSON.parse(raw);
       } catch {
-        return Response.json({ status: 'error', error: `Status parse error: ${raw.substring(0, 150)}` });
+        return Response.json({ status: 'error', error: `Could not parse: ${raw.substring(0, 200)}` });
       }
 
       if (!statusRes.ok) {
-        // Fall back to model-specific endpoint
-        const statusRes2 = await fetch(
-          `https://queue.fal.run/${modelPath}/requests/${requestId}/status`,
-          { headers: { 'Authorization': `Key ${apiKey}` } }
-        );
-        const raw2 = await statusRes2.text();
-        try {
-          status = JSON.parse(raw2);
-        } catch {
-          return Response.json({ status: 'error', error: `Fallback parse error: ${raw2.substring(0, 150)}` });
-        }
+        return Response.json({ status: 'error', error: `Status check failed (${statusRes.status}): ${JSON.stringify(status).substring(0, 200)}` });
       }
 
       if (status.status === 'COMPLETED') {
-        // Try universal result endpoint first, then model-specific
-        let result;
-        const resultRes = await fetch(
-          `https://queue.fal.run/requests/${requestId}`,
-          { headers: { 'Authorization': `Key ${apiKey}` } }
-        );
-        if (resultRes.ok) {
-          result = await resultRes.json();
-        } else {
-          const resultRes2 = await fetch(
-            `https://queue.fal.run/${modelPath}/requests/${requestId}`,
-            { headers: { 'Authorization': `Key ${apiKey}` } }
-          );
-          result = await resultRes2.json();
-        }
+        const resultUrl = `https://queue.fal.run/${modelPath}/requests/${requestId}`;
+        const resultRes = await fetch(resultUrl, {
+          method: 'GET',
+          headers: { 'Authorization': `Key ${apiKey}` },
+        });
+
+        const result = await resultRes.json();
 
         const videoUrl =
           result.video?.url ||
@@ -59,25 +45,23 @@ export async function POST(request) {
           null;
 
         if (videoUrl) return Response.json({ status: 'done', videoUrl });
-        return Response.json({ status: 'error', error: `No video URL: ${JSON.stringify(result).substring(0, 200)}` });
+        return Response.json({ status: 'error', error: `No video URL in: ${JSON.stringify(result).substring(0, 300)}` });
       }
 
       if (status.status === 'FAILED') {
         return Response.json({ status: 'error', error: status.error || status.detail || 'Generation failed' });
       }
 
-      if (status.status === 'IN_PROGRESS' || status.status === 'IN_QUEUE') {
-        return Response.json({ status: 'pending', queuePosition: status.queue_position });
-      }
-
-      // Unknown status — return it so we can see what Fal is saying
-      return Response.json({ status: 'pending', debug: JSON.stringify(status).substring(0, 200) });
+      return Response.json({ status: 'pending', queuePosition: status.queue_position, rawStatus: status.status });
     }
 
     if (provider === 'luma') {
       const res = await fetch(
         `https://api.lumalabs.ai/dream-machine/v1/generations/${requestId}`,
-        { headers: { 'Authorization': `Bearer ${apiKey}` } }
+        {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${apiKey}` },
+        }
       );
       const data = await res.json();
 
