@@ -13,7 +13,7 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [falKey, setFalKey] = useState('');
-  const [videoProvider, setVideoProvider] = useState('fal-kling');
+  const [videoProvider, setVideoProvider] = useState('fal-fast-svd');
   const [elevenLabsKey, setElevenLabsKey] = useState('');
   const [sceneMedia, setSceneMedia] = useState({});
   const [generatingMedia, setGeneratingMedia] = useState({});
@@ -22,7 +22,7 @@ export default function Home() {
   useEffect(() => {
     setFalKey(localStorage.getItem('fal_api_key') || '');
     setElevenLabsKey(localStorage.getItem('elevenlabs_api_key') || '');
-    setVideoProvider(localStorage.getItem('video_provider') || 'fal-kling');
+    setVideoProvider(localStorage.getItem('video_provider') || 'fal-fast-svd');
   }, []);
 
   function saveSettings() {
@@ -126,9 +126,8 @@ export default function Home() {
 
     const results = {};
 
-if (falKey) {
+    if (falKey) {
       try {
-        // Step 1 — submit job, get request ID back immediately
         const submitRes = await fetch('/api/generate-video', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -143,10 +142,9 @@ if (falKey) {
         if (submitData.error) {
           results.videoError = submitData.error;
         } else {
-          // Step 2 — poll from browser until done (no server timeout risk)
           const { requestId, modelPath, provider: prov } = submitData;
           let attempts = 0;
-          const maxAttempts = 60; // 5 minutes at 5s intervals
+          const maxAttempts = 60;
 
           while (attempts < maxAttempts) {
             await new Promise(r => setTimeout(r, 5000));
@@ -167,7 +165,6 @@ if (falKey) {
               results.videoError = checkData.error;
               break;
             }
-            // still pending — update UI with queue position if available
             if (checkData.queuePosition !== undefined) {
               setGeneratingMedia(prev => ({
                 ...prev,
@@ -234,11 +231,11 @@ if (falKey) {
   };
 
   const providerLabel = {
+    'fal-fast-svd': 'LTX Video',
     'fal-kling': 'Kling v1.6',
     'fal-minimax': 'Minimax',
-    'fal-luma': 'Luma (Fal)',
+    'fal-luma': 'Luma Dream Machine',
     'fal-pika': 'Pika v2.2',
-    'fal-fast-svd': 'Fast SVD',
     'luma-direct': 'Luma Direct',
   };
 
@@ -277,32 +274,27 @@ if (falKey) {
                 onChange={(e) => setVideoProvider(e.target.value)}
                 style={{ ...inputStyle, fontFamily: 'sans-serif', marginBottom: '10px', cursor: 'pointer' }}
               >
-                <optgroup label="Fal.ai models (one key for all)">
-                  <option value="fal-kling">Kling v1.6 — best quality</option>
-                  <option value="fal-minimax">Minimax — cinematic</option>
-                  <option value="fal-luma">Luma Dream Machine</option>
-                  <option value="fal-pika">Pika v2.2</option>
-                  <option value="fal-fast-svd">Fast SVD — cheapest</option>
+                <optgroup label="Available now">
+                  <option value="fal-fast-svd">LTX Video — fast generation</option>
                 </optgroup>
-                <optgroup label="Direct APIs">
-                  <option value="luma-direct">Luma AI (direct)</option>
+                <optgroup label="Coming soon">
+                  <option disabled value="">Kling v1.6 — best quality</option>
+                  <option disabled value="">Minimax — cinematic</option>
+                  <option disabled value="">Luma Dream Machine</option>
+                  <option disabled value="">Pika v2.2</option>
                 </optgroup>
               </select>
 
-              <div style={labelStyle}>
-                {videoProvider === 'luma-direct' ? 'Luma API key' : 'Fal.ai API key'}
-              </div>
+              <div style={labelStyle}>Fal.ai API key</div>
               <input
                 type="password"
                 value={falKey}
                 onChange={(e) => setFalKey(e.target.value)}
-                placeholder={videoProvider === 'luma-direct' ? 'luma-xxxxxxxx' : 'xxxxxxxx-xxxx-xxxx-xxxx:xxxx'}
+                placeholder="xxxxxxxx-xxxx-xxxx-xxxx:xxxx"
                 style={inputStyle}
               />
               <div style={{ fontSize: '11px', color: '#aaa', marginTop: '4px' }}>
-                {videoProvider === 'luma-direct'
-                  ? 'lumalabs.ai — direct API access'
-                  : 'fal.ai/dashboard/keys — one key works for all Fal models'}
+                fal.ai/dashboard/keys — one key works for all models
               </div>
             </div>
 
@@ -547,11 +539,11 @@ if (falKey) {
                           borderTopColor: '#fff', borderRadius: '50%',
                           animation: 'spin 0.8s linear infinite', margin: '0 auto 8px'
                         }} />
-                      <div style={{ fontSize: '11px', color: '#888' }}>Generating video...</div>
-                      <div style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>{providerLabel[videoProvider]}</div>
-                      {generating?.queuePosition > 0 && (
-                        <div style={{ fontSize: '10px', color: '#666', marginTop: '2px' }}>Queue position: {generating.queuePosition}</div>
-                      )}
+                        <div style={{ fontSize: '11px', color: '#888' }}>Generating video...</div>
+                        <div style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>{providerLabel[videoProvider]}</div>
+                        {generating?.queuePosition > 0 && (
+                          <div style={{ fontSize: '10px', color: '#666', marginTop: '2px' }}>Queue position: {generating.queuePosition}</div>
+                        )}
                       </div>
                     ) : (
                       <div style={{ padding: '16px', textAlign: 'center' }}>
