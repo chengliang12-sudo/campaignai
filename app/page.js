@@ -82,7 +82,7 @@ export default function Home() {
               </span>
             )}
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {campaign.scenes.map(scene => (
               <SceneCard
                 key={scene.scene_number}
@@ -101,11 +101,18 @@ export default function Home() {
                 onUpdateVoiceover={campaign.updateSceneVoiceover}
                 hasKeys={!!(campaign.falKey || campaign.elevenLabsKey)}
               />
-            ))}
+           ))}
+
+            {/* Add scene — coming soon */}
+            <div
+              style={{ border: '1px dashed #ddd', borderRadius: '12px', padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#bbb', cursor: 'not-allowed' }}
+            >
+              <span style={{ fontSize: '18px', lineHeight: 1 }}>+</span>
+              <span style={{ fontSize: '13px' }}>Add scene — coming soon</span>
+            </div>
           </div>
         </div>
       )}
-
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </main>
   );
