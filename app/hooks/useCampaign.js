@@ -1,0 +1,244 @@
+import { useState, useEffect } from 'react';
+
+export function useCampaign() {
+  const [brief, setBrief] = useState('');
+  const [analysis, setAnalysis] = useState(null);
+  const [direction, setDirection] = useState(null);
+  const [scenes, setScenes] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingDirection, setLoadingDirection] = useState(false);
+  const [loadingScenes, setLoadingScenes] = useState(false);
+  const [error, setError] = useState(null);
+  const [sceneMedia, setSceneMedia] = useState({});
+  const [generatingMedia, setGeneratingMedia] = useState({});
+  const [editingPrompts, setEditingPrompts] = useState({});
+  const [falKey, setFalKey] = useState('');
+  const [elevenLabsKey, setElevenLabsKey] = useState('');
+  const [videoProvider, setVideoProvider] = useState('fal-fast-svd');
+
+  useEffect(() => {
+    setFalKey(localStorage.getItem('fal_api_key') || '');
+    setElevenLabsKey(localStorage.getItem('elevenlabs_api_key') || '');
+    setVideoProvider(localStorage.getItem('video_provider') || 'fal-fast-svd');
+  }, []);
+
+  function saveSettings() {
+    localStorage.setItem('fal_api_key', falKey);
+    localStorage.setItem('elevenlabs_api_key', elevenLabsKey);
+    localStorage.setItem('video_provider', videoProvider);
+  }
+
+  function updateScenePrompt(sceneNum, newPrompt) {
+    setScenes(prev => prev.map(s =>
+      s.scene_number === sceneNum ? { ...s, visual_prompt: newPrompt } : s
+    ));
+  }
+
+  function updateSceneVoiceover(sceneNum, newScript) {
+    setScenes(prev => prev.map(s =>
+      s.scene_number === sceneNum ? { ...s, voiceover_script: newScript } : s
+    ));
+  }
+
+  function toggleEditPrompt(key) {
+    setEditingPrompts(prev => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  async function handleSubmit() {
+    if (!brief.trim()) return;
+    setLoading(true);
+    setError(null);
+    setAnalysis(null);
+    setDirection(null);
+    setScenes(null);
+    setSceneMedia({});
+    setEditingPrompts({});
+
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brief }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong');
+      setAnalysis(data);
+      setLoading(false);
+      await generateDirection(data);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  }
+
+  async function generateDirection(analysisData) {
+    setLoadingDirection(true);
+    try {
+      const res = await fetch('/api/direction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ analysis: analysisData }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Direction generation failed');
+      setDirection(data);
+      setLoadingDirection(false);
+      await generateScenes(analysisData, data);
+    } catch (err) {
+      setError(err.message);
+      setLoadingDirection(false);
+    }
+  }
+
+  async function generateScenes(analysisData, directionData) {
+    setLoadingScenes(true);
+    try {
+      const res = await fetch('/api/scenes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ analysis: analysisData, direction: directionData }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Scene generation failed');
+      setScenes(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingScenes(false);
+    }
+  }
+
+  async function generateSceneMedia(scene) {
+    const sceneNum = scene.scene_number;
+
+    if (!falKey && !elevenLabsKey) return false;
+
+    setGeneratingMedia(prev => ({
+      ...prev,
+      [sceneNum]: { video: !!falKey, audio: !!elevenLabsKey }
+    }));
+    setSceneMedia(prev => ({ ...prev, [sceneNum]: {} }));
+
+    const results = {};
+
+    if (falKey) {
+      try {
+        const submitRes = await fetch('/api/generate-video', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: scene.visual_prompt,
+            apiKey: falKey,
+            provider: videoProvider,
+          }),
+        });
+        const submitData = await submitRes.json();
+
+        if (submitData.error) {
+          results.videoError = submitData.error;
+        } else {
+          const { requestId, modelPath, provider: prov } = submitData;
+          let attempts = 0;
+          const maxAttempts = 60;
+
+          while (attempts < maxAttempts) {
+            await new Promise(r => setTimeout(r, 5000));
+            attempts++;
+
+            const checkRes = await fetch('/api/check-video', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ requestId, modelPath, provider: prov, apiKey: falKey }),
+            });
+            const checkData = await checkRes.json();
+
+            if (checkData.status === 'done') { results.videoUrl = checkData.videoUrl; break; }
+            if (checkData.status === 'error') { results.videoError = checkData.error; break; }
+            if (checkData.queuePosition !== undefined) {
+              setGeneratingMedia(prev => ({
+                ...prev,
+                [sceneNum]: { video: true, audio: false, queuePosition: checkData.queuePosition }
+              }));
+            }
+          }
+
+          if (!results.videoUrl && !results.videoError) {
+            results.videoError = 'Timed out after 5 minutes';
+          }
+        }
+      } catch (err) {
+        results.videoError = err.message;
+      }
+    }
+
+    if (elevenLabsKey) {
+      try {
+        const res = await fetch('/api/generate-audio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            script: scene.voiceover_script,
+            voiceStyle: analysis?.voice_style,
+            elevenLabsKey,
+          }),
+        });
+        const data = await res.json();
+        if (data.audioUrl) results.audioUrl = data.audioUrl;
+        else results.audioError = data.error || 'Audio generation failed';
+      } catch (err) {
+        results.audioError = err.message;
+      }
+    }
+
+    setSceneMedia(prev => ({ ...prev, [sceneNum]: results }));
+    setGeneratingMedia(prev => ({ ...prev, [sceneNum]: null }));
+  }
+
+  function downloadClip(sceneNum, type, url) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `scene-${sceneNum}-${type}.${type === 'video' ? 'mp4' : 'mp3'}`;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  const allScenesReady = scenes && scenes.every(
+    s => sceneMedia[s.scene_number]?.videoUrl || sceneMedia[s.scene_number]?.audioUrl
+  );
+
+  const isGenerating = loading || loadingDirection || loadingScenes;
+
+  const providerLabel = {
+    'fal-fast-svd': 'LTX Video',
+    'fal-kling': 'Kling v1.6',
+    'fal-minimax': 'Minimax',
+    'fal-luma': 'Luma Dream Machine',
+    'fal-pika': 'Pika v2.2',
+    'luma-direct': 'Luma Direct',
+  };
+
+  return {
+    // state
+    brief, setBrief,
+    analysis, direction, scenes,
+    loading, loadingDirection, loadingScenes,
+    isGenerating, error,
+    sceneMedia, generatingMedia,
+    editingPrompts,
+    falKey, setFalKey,
+    elevenLabsKey, setElevenLabsKey,
+    videoProvider, setVideoProvider,
+    allScenesReady,
+    providerLabel,
+    // actions
+    handleSubmit,
+    saveSettings,
+    generateSceneMedia,
+    updateScenePrompt,
+    updateSceneVoiceover,
+    toggleEditPrompt,
+    downloadClip,
+  };
+}
