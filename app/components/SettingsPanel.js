@@ -41,6 +41,7 @@ export default function SettingsPanel({
               <option disabled value="">Pika v2.2</option>
             </optgroup>
           </select>
+
           <div style={labelStyle}>Fal.ai API key</div>
           <input
             type="password"
@@ -83,10 +84,20 @@ export default function SettingsPanel({
           Cancel
         </button>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '20px', background: falKey ? '#e8f5e9' : '#f5f5f5', color: falKey ? '#2e7d32' : '#aaa', border: `1px solid ${falKey ? '#a5d6a7' : '#e0e0e0'}` }}>
-            {falKey ? `✓ ${providerLabel[videoProvider]} connected` : 'Video not set'}
+          <span style={{
+            fontSize: '12px', padding: '4px 10px', borderRadius: '20px',
+            background: falKey ? '#e8f5e9' : '#f5f5f5',
+            color: falKey ? '#2e7d32' : '#aaa',
+            border: `1px solid ${falKey ? '#a5d6a7' : '#e0e0e0'}`
+          }}>
+            {falKey ? '✓ Fal.ai connected' : 'Video not set'}
           </span>
-          <span style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '20px', background: elevenLabsKey ? '#e8f5e9' : '#f5f5f5', color: elevenLabsKey ? '#2e7d32' : '#aaa', border: `1px solid ${elevenLabsKey ? '#a5d6a7' : '#e0e0e0'}` }}>
+          <span style={{
+            fontSize: '12px', padding: '4px 10px', borderRadius: '20px',
+            background: elevenLabsKey ? '#e8f5e9' : '#f5f5f5',
+            color: elevenLabsKey ? '#2e7d32' : '#aaa',
+            border: `1px solid ${elevenLabsKey ? '#a5d6a7' : '#e0e0e0'}`
+          }}>
             {elevenLabsKey ? '✓ ElevenLabs connected' : 'Audio not set'}
           </span>
         </div>

@@ -1,6 +1,12 @@
+'use client';
+
 import { useState, useEffect } from 'react';
+import { useAuth } from '../lib/AuthContext';
+import { saveCampaign } from '../lib/campaigns';
 
 export function useCampaign() {
+  const { user } = useAuth();
+  const [campaignId, setCampaignId] = useState(null);
   const [brief, setBrief] = useState('');
   const [analysis, setAnalysis] = useState(null);
   const [direction, setDirection] = useState(null);
@@ -53,6 +59,7 @@ export function useCampaign() {
     setScenes(null);
     setSceneMedia({});
     setEditingPrompts({});
+    setCampaignId(null);
 
     try {
       const res = await fetch('/api/analyze', {
@@ -101,6 +108,19 @@ export function useCampaign() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Scene generation failed');
       setScenes(data);
+
+      if (user) {
+        const id = await saveCampaign(user.uid, {
+          brief,
+          productName: analysisData?.product_name || 'Untitled',
+          creativetitle: directionData?.creative_title || '',
+          analysis: analysisData,
+          direction: directionData,
+          scenes: data,
+        });
+        if (id) setCampaignId(id);
+      }
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -222,16 +242,20 @@ export function useCampaign() {
   return {
     // state
     brief, setBrief,
-    analysis, direction, scenes,
+    analysis, setAnalysis,
+    direction, setDirection,
+    scenes, setScenes,
     loading, loadingDirection, loadingScenes,
     isGenerating, error,
-    sceneMedia, generatingMedia,
+    sceneMedia, setSceneMedia,
+    generatingMedia,
     editingPrompts,
     falKey, setFalKey,
     elevenLabsKey, setElevenLabsKey,
     videoProvider, setVideoProvider,
     allScenesReady,
     providerLabel,
+    campaignId,
     // actions
     handleSubmit,
     saveSettings,
