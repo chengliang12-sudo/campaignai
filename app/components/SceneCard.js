@@ -31,14 +31,14 @@ export default function SceneCard({
       {/* Body — horizontal layout */}
       <div style={{ display: 'flex', flex: 1 }}>
 
-        {/* Left — video */}
+        {/* Left — animatic */}
         <div style={{ width: '300px', flexShrink: 0, background: '#111', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '170px' }}>
           {media?.videoUrl ? (
             <video src={media.videoUrl} controls style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           ) : generating?.video ? (
             <div style={{ textAlign: 'center', padding: '16px' }}>
               <div style={{ width: '24px', height: '24px', border: '2px solid #333', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 8px' }} />
-              <div style={{ fontSize: '11px', color: '#888' }}>Generating video...</div>
+              <div style={{ fontSize: '11px', color: '#888' }}>Generating animatic...</div>
               <div style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>{providerLabel[videoProvider]}</div>
               {generating?.queuePosition > 0 && (
                 <div style={{ fontSize: '10px', color: '#666', marginTop: '2px' }}>Queue: {generating.queuePosition}</div>
@@ -61,7 +61,7 @@ export default function SceneCard({
               onClick={() => onDownload(sceneNum, 'video', media.videoUrl)}
               style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}
             >
-              ↓ Download
+              ↓ Download animatic
             </button>
           )}
         </div>
@@ -69,16 +69,16 @@ export default function SceneCard({
         {/* Right — content */}
         <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 }}>
 
-          {/* Top row — what happens + voiceover side by side */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+
             <div>
-              <div style={labelStyle}>What happens</div>
+              <div style={labelStyle}>Scene description</div>
               <div style={{ fontSize: '13px', lineHeight: '1.6', color: '#333' }}>{scene.action_description}</div>
             </div>
 
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <div style={labelStyle}>Voiceover</div>
+                <div style={labelStyle}>Voiceover script</div>
                 <button onClick={onEditVo} style={{ background: 'none', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
                   {isEditingVo ? 'Done' : 'Edit'}
                 </button>
@@ -106,11 +106,14 @@ export default function SceneCard({
             </div>
           </div>
 
-          {/* Video prompt */}
+          {/* Animatic prompt */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <div style={labelStyle}>Video prompt</div>
-              <button onClick={onEditPrompt} style={{ background: 'none', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <div style={{ display: 'flex', align: 'center', gap: '6px' }}>
+                <div style={labelStyle}>Animatic prompt</div>
+                <span style={{ fontSize: '10px', color: '#bbb', fontStyle: 'italic', marginBottom: '6px', display: 'block' }}>rough motion reference — not final video quality</span>
+              </div>
+              <button onClick={onEditPrompt} style={{ background: 'none', border: 'none', fontSize: '11px', color: '#888', cursor: 'pointer', textDecoration: 'underline', padding: 0, flexShrink: 0 }}>
                 {isEditingPrompt ? 'Done' : 'Edit'}
               </button>
             </div>
@@ -127,7 +130,7 @@ export default function SceneCard({
             )}
           </div>
 
-          {/* Bottom row — generate button + transition */}
+          {/* Bottom row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: 'auto' }}>
             <button
               onClick={() => onGenerate(scene)}
@@ -140,13 +143,11 @@ export default function SceneCard({
                 whiteSpace: 'nowrap',
               }}
             >
-              {generating ? 'Generating...' : media ? 'Regenerate' : 'Generate video + audio'}
+              {generating ? 'Generating...' : media ? 'Regenerate animatic' : 'Generate animatic + voiceover'}
             </button>
 
             {!hasKeys && (
-              <div style={{ fontSize: '11px', color: '#aaa' }}>
-                Add API keys in Settings
-              </div>
+              <div style={{ fontSize: '11px', color: '#aaa' }}>Add API keys in Settings</div>
             )}
 
             {scene.transition_to_next && (

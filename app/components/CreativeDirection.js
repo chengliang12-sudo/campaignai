@@ -3,14 +3,14 @@ const cardStyle = { background: '#f7f7f7', borderRadius: '8px', padding: '16px' 
 
 export default function CreativeDirection({ direction, loading }) {
   if (loading && !direction) {
-    return <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>Generating creative direction...</div>;
+    return <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>Writing creative direction...</div>;
   }
   if (!direction) return null;
 
   return (
     <div style={{ marginBottom: '48px' }}>
       <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>Creative Direction</h2>
-      <p style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>The visual world that governs all scenes</p>
+      <p style={{ color: '#666', fontSize: '14px', marginBottom: '20px' }}>The visual language that runs through every scene</p>
 
       <div style={{ background: '#1a1a1a', color: '#fff', borderRadius: '12px', padding: '24px', marginBottom: '16px' }}>
         <div style={{ ...labelStyle, color: '#888' }}>Campaign title</div>

@@ -21,11 +21,10 @@ export default function CampaignHistory({ user, onSelect, currentId }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-
       <div style={{ flex: 1 }}>
         {campaigns.length === 0 ? (
           <div style={{ padding: '16px', fontSize: '12px', color: '#aaa', lineHeight: '1.6' }}>
-            No campaigns yet.<br />Generate one to get started.
+            No storyboards yet.<br />Generate one to get started.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -56,13 +55,6 @@ export default function CampaignHistory({ user, onSelect, currentId }) {
           </div>
         )}
       </div>
-
-      <div style={{ padding: '12px 14px', borderTop: '1px solid #e0e0e0', marginTop: '8px' }}>
-        <p style={{ fontSize: '11px', color: '#bbb', lineHeight: '1.6', margin: 0 }}>
-          Campaign prompts and structure are saved. Video and audio assets are not stored — regenerate from saved prompts anytime.
-        </p>
-      </div>
-
     </div>
   );
 }

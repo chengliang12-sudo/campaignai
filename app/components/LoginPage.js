@@ -10,7 +10,7 @@ export default function LoginPage() {
       <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e0e0e0', padding: '48px 40px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
         <h1 style={{ fontSize: '26px', fontWeight: 'bold', marginBottom: '8px', color: '#1a1a1a' }}>CampaignAI</h1>
         <p style={{ color: '#888', fontSize: '14px', marginBottom: '40px', lineHeight: '1.6' }}>
-          AI-powered marketing campaign generator.<br />Sign in to get started.
+          Build your marketing campaign storyboard in minutes.<br />Brief in — scenes, animatics, and voiceover scripts out.
         </p>
         <button
           onClick={signInWithGoogle}
@@ -32,7 +32,7 @@ export default function LoginPage() {
           Continue with Google
         </button>
         <p style={{ color: '#bbb', fontSize: '12px', marginTop: '24px' }}>
-          Your campaigns are saved to your account.
+          Your storyboards are saved to your account.
         </p>
       </div>
     </div>

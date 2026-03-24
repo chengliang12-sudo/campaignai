@@ -6,7 +6,7 @@ export default function BriefAnalysis({ analysis }) {
 
   return (
     <div style={{ marginBottom: '48px' }}>
-      <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>Brief Analysis</h2>
+      <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>What we understood from your brief</h2>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
         {[
           ['Product', analysis.product_name],

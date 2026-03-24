@@ -21,10 +21,10 @@ export default function BriefInput({ brief, setBrief, onSubmit, isGenerating, lo
           marginBottom: '40px',
         }}
       >
-        {loading ? 'Analyzing brief...'
-          : loadingDirection ? 'Generating direction...'
-          : loadingScenes ? 'Building scenes...'
-          : 'Analyze Brief'}
+        {loading ? 'Reading your brief...'
+          : loadingDirection ? 'Writing creative direction...'
+          : loadingScenes ? 'Building your storyboard...'
+          : 'Generate Storyboard'}
       </button>
     </div>
   );
