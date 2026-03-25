@@ -26,9 +26,7 @@ export default function Home() {
     );
   }
 
-  if (!user) {
-    return <LoginPage />;
-  }
+  if (!user) return <LoginPage />;
 
   function handleSaveSettings() {
     campaign.saveSettings();
@@ -59,7 +57,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Main content */}
+      {/* Main */}
       <main style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
 
         <Header
@@ -96,11 +94,7 @@ export default function Home() {
         )}
 
         <BriefAnalysis analysis={campaign.analysis} />
-
-        <CreativeDirection
-          direction={campaign.direction}
-          loading={campaign.loadingDirection}
-        />
+        <CreativeDirection direction={campaign.direction} loading={campaign.loadingDirection} />
 
         {campaign.loadingScenes && !campaign.scenes && (
           <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
@@ -110,7 +104,6 @@ export default function Home() {
 
         {campaign.scenes && (
           <div style={{ marginBottom: '48px' }}>
-
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>Your Storyboard</h2>
               {campaign.allScenesReady && (
@@ -161,6 +154,8 @@ export default function Home() {
                   scene={scene}
                   media={campaign.sceneMedia[scene.scene_number]}
                   generating={campaign.generatingMedia[scene.scene_number]}
+                  sceneImage={campaign.sceneImages[scene.scene_number]}
+                  generatingImage={campaign.generatingImages[scene.scene_number]}
                   isEditingPrompt={campaign.editingPrompts[scene.scene_number]}
                   isEditingVo={campaign.editingPrompts[`vo_${scene.scene_number}`]}
                   providerLabel={campaign.providerLabel}
@@ -171,6 +166,8 @@ export default function Home() {
                   onEditVo={() => campaign.toggleEditPrompt(`vo_${scene.scene_number}`)}
                   onUpdatePrompt={campaign.updateScenePrompt}
                   onUpdateVoiceover={campaign.updateSceneVoiceover}
+                  onRegenerateKeyframe={campaign.generateKeyframe}
+                  onRefineScene={campaign.refineScene}
                   hasKeys={!!(campaign.falKey || campaign.elevenLabsKey)}
                 />
               ))}
