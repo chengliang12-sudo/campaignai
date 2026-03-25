@@ -33,13 +33,38 @@ export default function Home() {
     setShowSettings(false);
   }
 
+  function handleNewStoryboard() {
+    campaign.setBrief('');
+    campaign.setAnalysis(null);
+    campaign.setDirection(null);
+    campaign.setScenes(null);
+    campaign.setSceneMedia({});
+    setNoticeDismissed(false);
+  }
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
 
       {/* Sidebar */}
       <div style={{ width: '220px', flexShrink: 0, borderRight: '1px solid #e0e0e0', background: '#fafafa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '20px 16px 12px', borderBottom: '1px solid #e0e0e0' }}>
-          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#999', fontFamily: 'monospace' }}>My Storyboards</div>
+        <div style={{ padding: '16px', borderBottom: '1px solid #e0e0e0' }}>
+          <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#999', fontFamily: 'monospace', marginBottom: '10px' }}>
+            My Storyboards
+          </div>
+          <button
+            onClick={handleNewStoryboard}
+            style={{
+              width: '100%', padding: '8px 12px', borderRadius: '8px',
+              border: '1px solid #1a1a1a', background: '#1a1a1a',
+              color: '#fff', fontSize: '12px', cursor: 'pointer',
+              textAlign: 'left', display: 'flex', alignItems: 'center', gap: '6px',
+            }}
+            onMouseOver={e => e.currentTarget.style.background = '#333'}
+            onMouseOut={e => e.currentTarget.style.background = '#1a1a1a'}
+          >
+            <span style={{ fontSize: '14px', lineHeight: 1 }}>+</span>
+            New storyboard
+          </button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px', display: 'flex', flexDirection: 'column' }}>
           <CampaignHistory
@@ -109,7 +134,7 @@ export default function Home() {
               {campaign.allScenesReady && (
                 <button
                   onClick={() => campaign.scenes.forEach(scene => {
-                    const media = campaign.sceneMedia[scene.scene_number];
+                    const media = campaign.sceneMedia[Number(scene.scene_number)];
                     if (media?.videoUrl) campaign.downloadClip(scene.scene_number, 'video', media.videoUrl);
                     if (media?.audioUrl) campaign.downloadClip(scene.scene_number, 'audio', media.audioUrl);
                   })}
@@ -152,10 +177,10 @@ export default function Home() {
                 <SceneCard
                   key={scene.scene_number}
                   scene={scene}
-                  media={campaign.sceneMedia[scene.scene_number]}
-                  generating={campaign.generatingMedia[scene.scene_number]}
-                  sceneImage={campaign.sceneImages[scene.scene_number]}
-                  generatingImage={campaign.generatingImages[scene.scene_number]}
+                  media={campaign.sceneMedia[Number(scene.scene_number)]}
+                  generating={campaign.generatingMedia[Number(scene.scene_number)]}
+                  sceneImage={campaign.sceneImages[Number(scene.scene_number)]}
+                  generatingImage={campaign.generatingImages[Number(scene.scene_number)]}
                   isEditingPrompt={campaign.editingPrompts[scene.scene_number]}
                   isEditingVo={campaign.editingPrompts[`vo_${scene.scene_number}`]}
                   providerLabel={campaign.providerLabel}
