@@ -13,7 +13,6 @@ const COLORS = {
   border: [224, 221, 214],
   bg: [247, 246, 242],
   white: [255, 255, 255],
-  accent: [26, 25, 23],
 };
 
 function setColor(doc, color, type = 'text') {
@@ -27,28 +26,45 @@ function label(doc, text, x, y) {
   doc.setFont('helvetica', 'bold');
   setColor(doc, COLORS.hint);
   doc.text(text.toUpperCase(), x, y);
+  return 5;
 }
 
-function body(doc, text, x, y, maxWidth) {
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  setColor(doc, COLORS.dark);
-  const lines = doc.splitTextToSize(text || '—', maxWidth);
+function bodyText(doc, text, x, y, maxWidth, options = {}) {
+  doc.setFontSize(options.size || 10);
+  doc.setFont('helvetica', options.italic ? 'italic' : 'normal');
+  setColor(doc, options.color || COLORS.dark);
+  const lines = doc.splitTextToSize(String(text || '—'), maxWidth);
   doc.text(lines, x, y);
-  return lines.length * 5;
+  return lines.length * (options.lineHeight || 5.2);
 }
 
 function heading(doc, text, x, y, size = 18) {
   doc.setFontSize(size);
   doc.setFont('helvetica', 'bold');
   setColor(doc, COLORS.black);
-  doc.text(text || '', x, y);
+  doc.text(String(text || ''), x, y);
 }
 
 function divider(doc, y) {
   setColor(doc, COLORS.border, 'draw');
   doc.setLineWidth(0.3);
   doc.line(MARGIN, y, PAGE_W - MARGIN, y);
+}
+
+function pageHeader(doc, text) {
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  setColor(doc, COLORS.hint);
+  doc.text(text.toUpperCase(), MARGIN, MARGIN + 4);
+  return MARGIN + 14;
+}
+
+function checkPageBreak(doc, y, neededHeight = 20) {
+  if (y + neededHeight > PAGE_H - 20) {
+    doc.addPage();
+    return MARGIN + 10;
+  }
+  return y;
 }
 
 async function fetchImageAsBase64(imageUrl) {
@@ -75,100 +91,93 @@ function hexToRgb(hex) {
   ] : [200, 200, 200];
 }
 
+function footers(doc, totalPages) {
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    setColor(doc, COLORS.hint);
+    doc.text('CampaignAI', MARGIN, PAGE_H - 8);
+    doc.text(`${i} / ${totalPages}`, PAGE_W - MARGIN, PAGE_H - 8, { align: 'right' });
+  }
+}
+
 export async function exportStoryboardPDF({ analysis, direction, scenes, sceneImages, brief }) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
-  // ── PAGE 1 — COVER ──────────────────────────────────────────
+  // ── PAGE 1 — COVER ───────────────────────────────────────────
   setColor(doc, COLORS.black, 'fill');
   doc.rect(0, 0, PAGE_W, PAGE_H, 'F');
 
-  // Logo placeholder — white box centered
-  const logoW = 48;
-  const logoH = 14;
+  const logoW = 52;
+  const logoH = 16;
   const logoX = (PAGE_W - logoW) / 2;
-  const logoY = PAGE_H / 2 - 30;
+  const logoY = PAGE_H / 2 - 32;
+
   setColor(doc, COLORS.white, 'fill');
   doc.roundedRect(logoX, logoY, logoW, logoH, 3, 3, 'F');
-  doc.setFontSize(13);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   setColor(doc, COLORS.black);
-  doc.text('CampaignAI', PAGE_W / 2, logoY + 9.5, { align: 'center' });
+  doc.text('CampaignAI', PAGE_W / 2, logoY + 10.5, { align: 'center' });
 
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   setColor(doc, [160, 155, 148]);
-  doc.text('Campaign Storyboard', PAGE_W / 2, logoY + 28, { align: 'center' });
+  doc.text('Campaign Storyboard', PAGE_W / 2, logoY + 30, { align: 'center' });
 
   doc.setFontSize(8);
   setColor(doc, [100, 96, 90]);
-  doc.text(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }), PAGE_W / 2, logoY + 38, { align: 'center' });
+  doc.text(
+    new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+    PAGE_W / 2, logoY + 40, { align: 'center' }
+  );
 
-  // ── PAGE 2 — CAMPAIGN OVERVIEW ──────────────────────────────
+  // ── PAGE 2 — CAMPAIGN OVERVIEW ───────────────────────────────
   doc.addPage();
+  let y = pageHeader(doc, 'Campaign Overview');
 
-  let y = MARGIN + 10;
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  setColor(doc, COLORS.hint);
-  doc.text('CAMPAIGN OVERVIEW', MARGIN, y);
+  heading(doc, direction?.creative_title || 'Untitled Campaign', MARGIN, y, 22);
   y += 12;
-
-  heading(doc, direction?.creative_title || 'Untitled Campaign', MARGIN, y, 24);
-  y += 10;
-
   divider(doc, y);
   y += 10;
 
-  // Product name
   label(doc, 'Product', MARGIN, y);
   y += 5;
-  const prodH = body(doc, analysis?.product_name || '—', MARGIN, y, CONTENT_W);
-  y += prodH + 8;
+  y += bodyText(doc, analysis?.product_name, MARGIN, y, CONTENT_W) + 8;
 
-  // Original brief
+  y = checkPageBreak(doc, y, 30);
   label(doc, 'Original Brief', MARGIN, y);
   y += 5;
-  const briefH = body(doc, brief || '—', MARGIN, y, CONTENT_W);
-  y += briefH + 8;
+  y += bodyText(doc, brief, MARGIN, y, CONTENT_W) + 8;
 
+  y = checkPageBreak(doc, y, 20);
   divider(doc, y);
   y += 10;
 
-  // Product description
   label(doc, 'Product Description', MARGIN, y);
   y += 5;
-  const descH = body(doc, analysis?.product_description || '—', MARGIN, y, CONTENT_W);
-  y += descH + 8;
+  y += bodyText(doc, analysis?.product_description, MARGIN, y, CONTENT_W) + 8;
 
-  // Core message
+  y = checkPageBreak(doc, y, 20);
   label(doc, 'Core Message', MARGIN, y);
   y += 5;
-  const coreH = body(doc, analysis?.core_message || '—', MARGIN, y, CONTENT_W);
-  y += coreH + 8;
+  y += bodyText(doc, analysis?.core_message, MARGIN, y, CONTENT_W) + 8;
 
-  // CTA
+  y = checkPageBreak(doc, y, 20);
   label(doc, 'Call to Action', MARGIN, y);
   y += 5;
-  body(doc, analysis?.cta || '—', MARGIN, y, CONTENT_W);
+  bodyText(doc, analysis?.cta, MARGIN, y, CONTENT_W);
 
-  // ── PAGE 3 — CREATIVE DIRECTION ─────────────────────────────
+  // ── PAGE 3 — CREATIVE DIRECTION ──────────────────────────────
   doc.addPage();
-  y = MARGIN + 10;
+  y = pageHeader(doc, 'Creative Direction');
 
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  setColor(doc, COLORS.hint);
-  doc.text('CREATIVE DIRECTION', MARGIN, y);
-  y += 12;
-
-  heading(doc, 'What we understood from your brief', MARGIN, y, 14);
+  heading(doc, 'Creative Direction', MARGIN, y, 16);
   y += 10;
-
   divider(doc, y);
   y += 10;
 
-  // Two column grid for brief understanding
+  // What we understood — two column grid
   const colW = (CONTENT_W - 8) / 2;
   const leftX = MARGIN;
   const rightX = MARGIN + colW + 8;
@@ -182,90 +191,121 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
     ['Key Differentiators', analysis?.key_differentiators?.join(', ')],
   ];
 
+  label(doc, 'What we understood from your brief', MARGIN, y);
+  y += 8;
+
   let leftY = y;
   let rightY = y;
 
-  fields.forEach(([ lbl, val ], i) => {
+  fields.forEach(([lbl, val], i) => {
     const col = i % 2 === 0 ? leftX : rightX;
     const curY = i % 2 === 0 ? leftY : rightY;
-
     label(doc, lbl, col, curY);
-    const h = body(doc, val || '—', col, curY + 5, colW);
-
-    if (i % 2 === 0) leftY += h + 14;
-    else rightY += h + 14;
+    const lineH = bodyText(doc, val, col, curY + 5, colW);
+    if (i % 2 === 0) leftY += lineH + 14;
+    else rightY += lineH + 14;
   });
 
   y = Math.max(leftY, rightY) + 4;
+  y = checkPageBreak(doc, y, 30);
   divider(doc, y);
   y += 10;
 
   // Narrative arc
   label(doc, 'Narrative Arc', MARGIN, y);
   y += 5;
-  const arcH = body(doc, direction?.narrative_arc || '—', MARGIN, y, CONTENT_W);
-  y += arcH + 10;
+  y += bodyText(doc, direction?.narrative_arc, MARGIN, y, CONTENT_W) + 10;
 
-  // Emotion journey
-  label(doc, 'Emotion Journey', MARGIN, y);
-  y += 5;
-  const journeyH = body(doc, direction?.overall_emotion_journey || '—', MARGIN, y, CONTENT_W);
-  y += journeyH + 10;
-
-  divider(doc, y);
-  y += 10;
-
-  // Color palette
-  label(doc, 'Color Palette', MARGIN, y);
-  y += 6;
-
-  if (direction?.color_palette) {
-    const swatchSize = 14;
-    const swatchGap = 6;
-    let swatchX = MARGIN;
-
-    Object.entries(direction.color_palette)
-      .filter(([k]) => k !== 'mood')
-      .forEach(([key, hex]) => {
-        const rgb = hexToRgb(hex);
-        setColor(doc, rgb, 'fill');
-        setColor(doc, COLORS.border, 'draw');
-        doc.setLineWidth(0.2);
-        doc.roundedRect(swatchX, y, swatchSize, swatchSize, 2, 2, 'FD');
-
-        doc.setFontSize(7);
-        doc.setFont('helvetica', 'normal');
-        setColor(doc, COLORS.muted);
-        doc.text(key.toUpperCase(), swatchX, y + swatchSize + 4);
-        doc.text(hex, swatchX, y + swatchSize + 8);
-
-        swatchX += swatchSize + swatchGap + 16;
-      });
-
-    y += swatchSize + 16;
-  }
-
-  // Mood
-  if (direction?.color_palette?.mood) {
-    label(doc, 'Palette Mood', MARGIN, y);
-    y += 5;
-    body(doc, direction.color_palette.mood, MARGIN, y, CONTENT_W);
-    y += 10;
-  }
-
+  y = checkPageBreak(doc, y, 30);
   divider(doc, y);
   y += 10;
 
   // Master style seed
   label(doc, 'Master Style Seed', MARGIN, y);
   y += 5;
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'italic');
-  setColor(doc, COLORS.muted);
-  const seedLines = doc.splitTextToSize(direction?.master_style_seed || '—', CONTENT_W);
-  doc.text(seedLines, MARGIN, y);
+  y += bodyText(doc, direction?.master_style_seed, MARGIN, y, CONTENT_W, {
+    size: 9, italic: true, color: COLORS.muted, lineHeight: 5,
+  }) + 8;
 
-  // ── PAGES 4+ — SCENES ───────────────────────────────────────
+  // ── PAGE 4 — COLOR PALETTE & EMOTION ─────────────────────────
+  doc.addPage();
+  y = pageHeader(doc, 'Visual Identity');
+
+  heading(doc, 'Color Palette & Emotion', MARGIN, y, 16);
+  y += 10;
+  divider(doc, y);
+  y += 12;
+
+  // Large color swatches
+  if (direction?.color_palette) {
+    const paletteEntries = Object.entries(direction.color_palette).filter(([k]) => k !== 'mood');
+    const swatchCount = paletteEntries.length;
+    const swatchW = Math.min(50, (CONTENT_W - (swatchCount - 1) * 8) / swatchCount);
+    const swatchH = 36;
+    let swatchX = MARGIN;
+
+    paletteEntries.forEach(([key, hex]) => {
+      const rgb = hexToRgb(hex);
+      setColor(doc, rgb, 'fill');
+      setColor(doc, COLORS.border, 'draw');
+      doc.setLineWidth(0.2);
+      doc.roundedRect(swatchX, y, swatchW, swatchH, 3, 3, 'FD');
+
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      setColor(doc, COLORS.muted);
+      doc.text(key.toUpperCase(), swatchX, y + swatchH + 6);
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      setColor(doc, COLORS.dark);
+      doc.text(hex, swatchX, y + swatchH + 12);
+
+      swatchX += swatchW + 8;
+    });
+
+    y += swatchH + 20;
+  }
+
+  y = checkPageBreak(doc, y, 20);
+  divider(doc, y);
+  y += 10;
+
+  // Palette mood
+  if (direction?.color_palette?.mood) {
+    label(doc, 'Palette Mood', MARGIN, y);
+    y += 5;
+    y += bodyText(doc, direction.color_palette.mood, MARGIN, y, CONTENT_W, { size: 11 }) + 14;
+  }
+
+  y = checkPageBreak(doc, y, 20);
+  divider(doc, y);
+  y += 10;
+
+  // Emotion journey
+  label(doc, 'Emotion Journey', MARGIN, y);
+  y += 5;
+  y += bodyText(doc, direction?.overall_emotion_journey, MARGIN, y, CONTENT_W) + 10;
+
+  y = checkPageBreak(doc, y, 20);
+  divider(doc, y);
+  y += 10;
+
+  // Music direction
+  label(doc, 'Music Direction', MARGIN, y);
+  y += 5;
+  y += bodyText(doc, direction?.music_direction, MARGIN, y, CONTENT_W) + 10;
+
+  y = checkPageBreak(doc, y, 20);
+  divider(doc, y);
+  y += 10;
+
+  // Cinematography
+  label(doc, 'Cinematography Style', MARGIN, y);
+  y += 5;
+  bodyText(doc, direction?.cinematography_style, MARGIN, y, CONTENT_W);
+
+  // ── SCENE PAGES ───────────────────────────────────────────────
   for (const scene of scenes) {
     doc.addPage();
     y = MARGIN;
@@ -275,8 +315,8 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
       ? await fetchImageAsBase64(sceneImages[sceneNum].imageUrl)
       : null;
 
-    // Keyframe image — full width 16:9
-    const imgH = (CONTENT_W * 9) / 16;
+    // Keyframe — full width 16:9
+    const imgH = Math.round((CONTENT_W * 9) / 16);
 
     if (imageData) {
       try {
@@ -287,7 +327,7 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
         doc.roundedRect(MARGIN, y, CONTENT_W, imgH, 3, 3, 'FD');
         doc.setFontSize(9);
         setColor(doc, COLORS.hint);
-        doc.text('Keyframe not available', PAGE_W / 2, y + imgH / 2, { align: 'center' });
+        doc.text('Keyframe unavailable', PAGE_W / 2, y + imgH / 2, { align: 'center' });
       }
     } else {
       setColor(doc, COLORS.bg, 'fill');
@@ -301,22 +341,20 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
 
     y += imgH + 8;
 
-    // Scene header
-    doc.setFontSize(14);
+    // Scene title row
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     setColor(doc, COLORS.black);
     doc.text(`Scene ${sceneNum}`, MARGIN, y);
 
-    // Emotional beat pill
     const beatText = (scene.emotional_beat || '').toUpperCase();
     doc.setFontSize(7);
     const beatW = doc.getTextWidth(beatText) + 6;
     setColor(doc, [238, 244, 255], 'fill');
-    doc.roundedRect(MARGIN + 28, y - 5, beatW, 6, 1.5, 1.5, 'F');
+    doc.roundedRect(MARGIN + 30, y - 5, beatW, 6, 1.5, 1.5, 'F');
     setColor(doc, [74, 111, 165]);
-    doc.text(beatText, MARGIN + 31, y - 0.5);
+    doc.text(beatText, MARGIN + 33, y - 0.8);
 
-    // Duration
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     setColor(doc, COLORS.muted);
@@ -326,62 +364,46 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
     divider(doc, y);
     y += 8;
 
-    // Two column — scene description + voiceover
-    label(doc, 'Scene Description', leftX, y);
-    label(doc, 'Voiceover Script', rightX, y);
+    // Scene description — full width
+    label(doc, 'Scene Description', MARGIN, y);
     y += 5;
-
-    const descLines = doc.splitTextToSize(scene.action_description || '—', colW);
-    const voLines = doc.splitTextToSize(`"${scene.voiceover_script || '—'}"`, colW);
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    setColor(doc, COLORS.dark);
-    doc.text(descLines, leftX, y);
-
-    doc.setFont('helvetica', 'italic');
-    setColor(doc, [100, 96, 92]);
-    doc.text(voLines, rightX, y);
-
-    y += Math.max(descLines.length, voLines.length) * 5 + 10;
+    y += bodyText(doc, scene.action_description, MARGIN, y, CONTENT_W) + 8;
 
     divider(doc, y);
     y += 8;
 
-    // Animatic prompt
+    // Voiceover — full width
+    label(doc, 'Voiceover Script', MARGIN, y);
+    y += 5;
+    y += bodyText(doc, `"${scene.voiceover_script}"`, MARGIN, y, CONTENT_W, {
+      italic: true, color: [100, 96, 92],
+    }) + 8;
+
+    divider(doc, y);
+    y += 8;
+
+    // Animatic prompt — secondary
     label(doc, 'Animatic Prompt', MARGIN, y);
     y += 5;
+    const promptLines = doc.splitTextToSize(scene.visual_prompt || '—', CONTENT_W);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     setColor(doc, COLORS.hint);
-    const promptLines = doc.splitTextToSize(scene.visual_prompt || '—', CONTENT_W);
-    doc.text(promptLines.slice(0, 4), MARGIN, y);
-    y += Math.min(promptLines.length, 4) * 4.5 + 8;
+    doc.text(promptLines.slice(0, 5), MARGIN, y);
+    y += Math.min(promptLines.length, 5) * 4.5 + 6;
 
     // Transition
     if (scene.transition_to_next) {
       doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
       setColor(doc, COLORS.hint);
-      doc.text(`→ Transition: ${scene.transition_to_next}`, PAGE_W - MARGIN, y, { align: 'right' });
+      doc.text(`→ Transition: ${scene.transition_to_next}`, PAGE_W - MARGIN, PAGE_H - 16, { align: 'right' });
     }
-
-    // Page number footer
-    doc.setFontSize(7);
-    setColor(doc, COLORS.hint);
-    doc.text(`Scene ${sceneNum} of ${scenes.length}`, PAGE_W / 2, PAGE_H - 10, { align: 'center' });
   }
 
-  // Footer on all pages
-  const totalPages = doc.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-    doc.setFontSize(7);
-    setColor(doc, [80, 76, 72]);
-    doc.text('CampaignAI', MARGIN, PAGE_H - 8);
-    doc.text(`${i} / ${totalPages}`, PAGE_W - MARGIN, PAGE_H - 8, { align: 'right' });
-  }
+  // Footers on all pages
+  footers(doc, doc.getNumberOfPages());
 
-  const filename = `${(direction?.creative_title || 'storyboard').toLowerCase().replace(/\s+/g, '-')}-storyboard.pdf`;
+  const filename = `${(direction?.creative_title || 'storyboard')
+    .toLowerCase().replace(/\s+/g, '-')}-storyboard.pdf`;
   doc.save(filename);
 }
