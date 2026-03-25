@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { saveCampaign } from '../lib/campaigns';
+import { saveCampaign, getBrandProfile } from '../lib/campaigns';
 
 export function useCampaign() {
   const { user } = useAuth();
@@ -20,15 +21,23 @@ export function useCampaign() {
   const [generatingMedia, setGeneratingMedia] = useState({});
   const [generatingImages, setGeneratingImages] = useState({});
   const [editingPrompts, setEditingPrompts] = useState({});
+  const [brandProfile, setBrandProfile] = useState(null);
   const [falKey, setFalKey] = useState('');
   const [elevenLabsKey, setElevenLabsKey] = useState('');
   const [videoProvider, setVideoProvider] = useState('fal-fast-svd');
 
-  useEffect(() => {
+useEffect(() => {
     setFalKey(localStorage.getItem('fal_api_key') || '');
     setElevenLabsKey(localStorage.getItem('elevenlabs_api_key') || '');
     setVideoProvider(localStorage.getItem('video_provider') || 'fal-fast-svd');
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    getBrandProfile(user.uid).then(data => {
+      if (data) setBrandProfile(data);
+    });
+  }, [user]);
 
   function saveSettings() {
     localStorage.setItem('fal_api_key', falKey);
@@ -130,10 +139,20 @@ export function useCampaign() {
     setCampaignId(null);
 
     try {
+// Append brand profile to brief if available
+      let enrichedBrief = brief;
+      if (brandProfile?.brandName || brandProfile?.brandVoice || brandProfile?.brandRules || brandProfile?.brandGuidelines) {
+        enrichedBrief += '\n\n---\nBRAND CONTEXT (apply to all outputs):\n';
+        if (brandProfile.brandName) enrichedBrief += `Brand name: ${brandProfile.brandName}\n`;
+        if (brandProfile.brandVoice) enrichedBrief += `Brand voice: ${brandProfile.brandVoice}\n`;
+        if (brandProfile.brandRules) enrichedBrief += `Brand rules: ${brandProfile.brandRules}\n`;
+        if (brandProfile.brandGuidelines) enrichedBrief += `Brand guidelines: ${brandProfile.brandGuidelines}\n`;
+      }
+
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ brief }),
+        body: JSON.stringify({ brief: enrichedBrief }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
@@ -327,6 +346,7 @@ export function useCampaign() {
     allScenesReady,
     providerLabel,
     campaignId,
+    brandProfile,
     handleSubmit,
     saveSettings,
     generateSceneMedia,

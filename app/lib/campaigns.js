@@ -45,3 +45,28 @@ export async function getUserCampaigns(userId) {
     return [];
   }
 }
+export async function saveBrandProfile(userId, profile) {
+  try {
+    const ref = doc(db, 'brandProfiles', userId);
+    await setDoc(ref, {
+      ...profile,
+      updatedAt: serverTimestamp(),
+    });
+    return true;
+  } catch (err) {
+    console.error('Error saving brand profile:', err);
+    return false;
+  }
+}
+
+export async function getBrandProfile(userId) {
+  try {
+    const ref = doc(db, 'brandProfiles', userId);
+    const snap = await getDoc(ref);
+    if (snap.exists()) return snap.data();
+    return null;
+  } catch (err) {
+    console.error('Error fetching brand profile:', err);
+    return null;
+  }
+}

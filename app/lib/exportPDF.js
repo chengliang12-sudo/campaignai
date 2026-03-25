@@ -101,7 +101,7 @@ function footers(doc, totalPages) {
   }
 }
 
-export async function exportStoryboardPDF({ analysis, direction, scenes, sceneImages, brief }) {
+export async function exportStoryboardPDF({ analysis, direction, scenes, sceneImages, brief, brandProfile }) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
   // ── PAGE 1 — COVER ───────────────────────────────────────────
@@ -166,7 +166,43 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
   y = checkPageBreak(doc, y, 20);
   label(doc, 'Call to Action', MARGIN, y);
   y += 5;
-  bodyText(doc, analysis?.cta, MARGIN, y, CONTENT_W);
+  y += bodyText(doc, analysis?.cta, MARGIN, y, CONTENT_W) + 8;
+
+  // Brand profile section on page 2
+  if (brandProfile?.brandName || brandProfile?.brandVoice || brandProfile?.brandRules) {
+    y = checkPageBreak(doc, y, 40);
+    divider(doc, y);
+    y += 10;
+
+    label(doc, 'Brand Profile', MARGIN, y);
+    y += 8;
+
+    if (brandProfile.brandName) {
+      label(doc, 'Brand Name', MARGIN, y);
+      y += 5;
+      y += bodyText(doc, brandProfile.brandName, MARGIN, y, CONTENT_W) + 8;
+    }
+    if (brandProfile.brandVoice) {
+      y = checkPageBreak(doc, y, 20);
+      label(doc, 'Brand Voice', MARGIN, y);
+      y += 5;
+      y += bodyText(doc, brandProfile.brandVoice, MARGIN, y, CONTENT_W) + 8;
+    }
+    if (brandProfile.brandRules) {
+      y = checkPageBreak(doc, y, 20);
+      label(doc, 'Brand Rules', MARGIN, y);
+      y += 5;
+      y += bodyText(doc, brandProfile.brandRules, MARGIN, y, CONTENT_W) + 8;
+    }
+    if (brandProfile.brandGuidelines) {
+      y = checkPageBreak(doc, y, 20);
+      label(doc, 'Brand Guidelines', MARGIN, y);
+      y += 5;
+      bodyText(doc, brandProfile.brandGuidelines, MARGIN, y, CONTENT_W, {
+        size: 9, color: COLORS.muted,
+      });
+    }
+  }
 
   // ── PAGE 3 — CREATIVE DIRECTION ──────────────────────────────
   doc.addPage();
@@ -177,7 +213,6 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
   divider(doc, y);
   y += 10;
 
-  // What we understood — two column grid
   const colW = (CONTENT_W - 8) / 2;
   const leftX = MARGIN;
   const rightX = MARGIN + colW + 8;
@@ -211,7 +246,6 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
   divider(doc, y);
   y += 10;
 
-  // Narrative arc
   label(doc, 'Narrative Arc', MARGIN, y);
   y += 5;
   y += bodyText(doc, direction?.narrative_arc, MARGIN, y, CONTENT_W) + 10;
@@ -220,14 +254,13 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
   divider(doc, y);
   y += 10;
 
-  // Master style seed
   label(doc, 'Master Style Seed', MARGIN, y);
   y += 5;
-  y += bodyText(doc, direction?.master_style_seed, MARGIN, y, CONTENT_W, {
+  bodyText(doc, direction?.master_style_seed, MARGIN, y, CONTENT_W, {
     size: 9, italic: true, color: COLORS.muted, lineHeight: 5,
-  }) + 8;
+  });
 
-  // ── PAGE 4 — COLOR PALETTE & EMOTION ─────────────────────────
+  // ── PAGE 4 — COLOR PALETTE & VISUAL IDENTITY ─────────────────
   doc.addPage();
   y = pageHeader(doc, 'Visual Identity');
 
@@ -236,7 +269,6 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
   divider(doc, y);
   y += 12;
 
-  // Large color swatches
   if (direction?.color_palette) {
     const paletteEntries = Object.entries(direction.color_palette).filter(([k]) => k !== 'mood');
     const swatchCount = paletteEntries.length;
@@ -271,7 +303,6 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
   divider(doc, y);
   y += 10;
 
-  // Palette mood
   if (direction?.color_palette?.mood) {
     label(doc, 'Palette Mood', MARGIN, y);
     y += 5;
@@ -282,7 +313,6 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
   divider(doc, y);
   y += 10;
 
-  // Emotion journey
   label(doc, 'Emotion Journey', MARGIN, y);
   y += 5;
   y += bodyText(doc, direction?.overall_emotion_journey, MARGIN, y, CONTENT_W) + 10;
@@ -291,7 +321,6 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
   divider(doc, y);
   y += 10;
 
-  // Music direction
   label(doc, 'Music Direction', MARGIN, y);
   y += 5;
   y += bodyText(doc, direction?.music_direction, MARGIN, y, CONTENT_W) + 10;
@@ -300,7 +329,6 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
   divider(doc, y);
   y += 10;
 
-  // Cinematography
   label(doc, 'Cinematography Style', MARGIN, y);
   y += 5;
   bodyText(doc, direction?.cinematography_style, MARGIN, y, CONTENT_W);
@@ -315,7 +343,6 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
       ? await fetchImageAsBase64(sceneImages[sceneNum].imageUrl)
       : null;
 
-    // Keyframe — full width 16:9
     const imgH = Math.round((CONTENT_W * 9) / 16);
 
     if (imageData) {
@@ -341,7 +368,7 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
 
     y += imgH + 8;
 
-    // Scene title row
+    // Scene header row
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     setColor(doc, COLORS.black);
@@ -369,6 +396,7 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
     y += 5;
     y += bodyText(doc, scene.action_description, MARGIN, y, CONTENT_W) + 8;
 
+    y = checkPageBreak(doc, y, 20);
     divider(doc, y);
     y += 8;
 
@@ -379,10 +407,11 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
       italic: true, color: [100, 96, 92],
     }) + 8;
 
+    y = checkPageBreak(doc, y, 20);
     divider(doc, y);
     y += 8;
 
-    // Animatic prompt — secondary
+    // Animatic prompt — secondary, muted
     label(doc, 'Animatic Prompt', MARGIN, y);
     y += 5;
     const promptLines = doc.splitTextToSize(scene.visual_prompt || '—', CONTENT_W);
@@ -390,9 +419,8 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
     doc.setFont('helvetica', 'normal');
     setColor(doc, COLORS.hint);
     doc.text(promptLines.slice(0, 5), MARGIN, y);
-    y += Math.min(promptLines.length, 5) * 4.5 + 6;
 
-    // Transition
+    // Transition note
     if (scene.transition_to_next) {
       doc.setFontSize(8);
       setColor(doc, COLORS.hint);
