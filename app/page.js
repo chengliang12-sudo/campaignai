@@ -11,6 +11,7 @@ import BriefAnalysis from './components/BriefAnalysis';
 import CreativeDirection from './components/CreativeDirection';
 import SceneCard from './components/SceneCard';
 import CampaignHistory from './components/CampaignHistory';
+import { exportStoryboardPDF } from './lib/exportPDF';
 
 export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
@@ -129,20 +130,34 @@ export default function Home() {
 
         {campaign.scenes && (
           <div style={{ marginBottom: '48px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>Your Storyboard</h2>
-              {campaign.allScenesReady && (
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <button
-                  onClick={() => campaign.scenes.forEach(scene => {
-                    const media = campaign.sceneMedia[Number(scene.scene_number)];
-                    if (media?.videoUrl) campaign.downloadClip(scene.scene_number, 'video', media.videoUrl);
-                    if (media?.audioUrl) campaign.downloadClip(scene.scene_number, 'audio', media.audioUrl);
+                  onClick={() => exportStoryboardPDF({
+                    analysis: campaign.analysis,
+                    direction: campaign.direction,
+                    scenes: campaign.scenes,
+                    sceneImages: campaign.sceneImages,
+                    brief: campaign.brief,
                   })}
-                  style={{ background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', cursor: 'pointer' }}
+                  style={{ background: '#fff', color: '#1a1a1a', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', cursor: 'pointer' }}
                 >
-                  Download all animatics
+                  Export storyboard PDF
                 </button>
-              )}
+                {campaign.allScenesReady && (
+                  <button
+                    onClick={() => campaign.scenes.forEach(scene => {
+                      const media = campaign.sceneMedia[Number(scene.scene_number)];
+                      if (media?.videoUrl) campaign.downloadClip(scene.scene_number, 'video', media.videoUrl);
+                      if (media?.audioUrl) campaign.downloadClip(scene.scene_number, 'audio', media.audioUrl);
+                    })}
+                    style={{ background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', cursor: 'pointer' }}
+                  >
+                    Download all animatics
+                  </button>
+                )}
+              </div>
             </div>
 
             <p style={{ color: '#666', fontSize: '14px', marginBottom: '16px' }}>
