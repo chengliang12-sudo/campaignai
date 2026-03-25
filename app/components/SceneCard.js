@@ -17,7 +17,7 @@ export default function SceneCard({
   onRegenerateKeyframe, onRefineScene,
   hasKeys,
 }) {
-  const sceneNum = scene.scene_number;
+const sceneNum = Number(scene.scene_number);
   const [feedback, setFeedback] = useState('');
   const [refining, setRefining] = useState(false);
 

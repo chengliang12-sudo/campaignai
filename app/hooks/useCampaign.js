@@ -16,7 +16,9 @@ export function useCampaign() {
   const [loadingScenes, setLoadingScenes] = useState(false);
   const [error, setError] = useState(null);
   const [sceneMedia, setSceneMedia] = useState({});
+  const [sceneImages, setSceneImages] = useState({});
   const [generatingMedia, setGeneratingMedia] = useState({});
+  const [generatingImages, setGeneratingImages] = useState({});
   const [editingPrompts, setEditingPrompts] = useState({});
   const [falKey, setFalKey] = useState('');
   const [elevenLabsKey, setElevenLabsKey] = useState('');
@@ -36,18 +38,83 @@ export function useCampaign() {
 
   function updateScenePrompt(sceneNum, newPrompt) {
     setScenes(prev => prev.map(s =>
-      s.scene_number === sceneNum ? { ...s, visual_prompt: newPrompt } : s
+      Number(s.scene_number) === Number(sceneNum) ? { ...s, visual_prompt: newPrompt } : s
     ));
   }
 
   function updateSceneVoiceover(sceneNum, newScript) {
     setScenes(prev => prev.map(s =>
-      s.scene_number === sceneNum ? { ...s, voiceover_script: newScript } : s
+      Number(s.scene_number) === Number(sceneNum) ? { ...s, voiceover_script: newScript } : s
     ));
   }
 
   function toggleEditPrompt(key) {
     setEditingPrompts(prev => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  async function generateKeyframe(scene) {
+    if (!falKey) return;
+    const sceneNum = Number(scene.scene_number);
+
+    setGeneratingImages(prev => ({ ...prev, [sceneNum]: true }));
+
+    try {
+      const res = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: scene.visual_prompt, apiKey: falKey }),
+      });
+      const data = await res.json();
+      if (data.imageUrl) {
+        setSceneImages(prev => ({ ...prev, [sceneNum]: { imageUrl: data.imageUrl } }));
+      } else {
+        setSceneImages(prev => ({ ...prev, [sceneNum]: { imageError: data.error || 'Image generation failed' } }));
+      }
+    } catch (err) {
+      setSceneImages(prev => ({ ...prev, [sceneNum]: { imageError: err.message } }));
+    } finally {
+      setGeneratingImages(prev => ({ ...prev, [sceneNum]: false }));
+    }
+  }
+
+  async function refineScene(scene, userFeedback) {
+    if (!userFeedback.trim()) return;
+    const sceneNum = Number(scene.scene_number);
+
+    setGeneratingImages(prev => ({ ...prev, [sceneNum]: true }));
+
+    try {
+      const res = await fetch('/api/refine-scene', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scene,
+          userFeedback,
+          masterStyleSeed: direction?.master_style_seed || '',
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      setScenes(prev => prev.map(s =>
+        Number(s.scene_number) === sceneNum ? {
+          ...s,
+          visual_prompt: data.visual_prompt || s.visual_prompt,
+          voiceover_script: data.voiceover_script || s.voiceover_script,
+          action_description: data.action_description || s.action_description,
+        } : s
+      ));
+
+      const updatedScene = {
+        ...scene,
+        visual_prompt: data.visual_prompt || scene.visual_prompt,
+      };
+      await generateKeyframe(updatedScene);
+
+    } catch (err) {
+      setGeneratingImages(prev => ({ ...prev, [sceneNum]: false }));
+      console.error('Refine error:', err);
+    }
   }
 
   async function handleSubmit() {
@@ -58,6 +125,7 @@ export function useCampaign() {
     setDirection(null);
     setScenes(null);
     setSceneMedia({});
+    setSceneImages({});
     setEditingPrompts({});
     setCampaignId(null);
 
@@ -121,6 +189,10 @@ export function useCampaign() {
         if (id) setCampaignId(id);
       }
 
+      if (falKey) {
+        data.forEach(scene => generateKeyframe(scene));
+      }
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -129,8 +201,7 @@ export function useCampaign() {
   }
 
   async function generateSceneMedia(scene) {
-    const sceneNum = scene.scene_number;
-
+    const sceneNum = Number(scene.scene_number);
     if (!falKey && !elevenLabsKey) return false;
 
     setGeneratingMedia(prev => ({
@@ -225,7 +296,7 @@ export function useCampaign() {
   }
 
   const allScenesReady = scenes && scenes.every(
-    s => sceneMedia[s.scene_number]?.videoUrl || sceneMedia[s.scene_number]?.audioUrl
+    s => sceneMedia[Number(s.scene_number)]?.videoUrl || sceneMedia[Number(s.scene_number)]?.audioUrl
   );
 
   const isGenerating = loading || loadingDirection || loadingScenes;
@@ -240,7 +311,6 @@ export function useCampaign() {
   };
 
   return {
-    // state
     brief, setBrief,
     analysis, setAnalysis,
     direction, setDirection,
@@ -248,6 +318,7 @@ export function useCampaign() {
     loading, loadingDirection, loadingScenes,
     isGenerating, error,
     sceneMedia, setSceneMedia,
+    sceneImages, generatingImages,
     generatingMedia,
     editingPrompts,
     falKey, setFalKey,
@@ -256,10 +327,11 @@ export function useCampaign() {
     allScenesReady,
     providerLabel,
     campaignId,
-    // actions
     handleSubmit,
     saveSettings,
     generateSceneMedia,
+    generateKeyframe,
+    refineScene,
     updateScenePrompt,
     updateSceneVoiceover,
     toggleEditPrompt,
