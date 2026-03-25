@@ -13,6 +13,7 @@ import SceneCard from './components/SceneCard';
 import CampaignHistory from './components/CampaignHistory';
 import BrandProfile from './components/BrandProfile';
 import { exportStoryboardPDF } from './lib/exportPDF';
+import BrandGuard from './components/BrandGuard';
 
 export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
@@ -212,7 +213,13 @@ export default function Home() {
                     </span>
                   )}
                 </p>
-
+                {/* BrandGuard */}
+                <BrandGuard
+                  scenes={campaign.scenes}
+                  brandProfile={campaign.brandProfile}
+                  analysis={campaign.analysis}
+                />
+                
                 {/* Storage notice banner */}
                 {!noticeDismissed && (
                   <div style={{ background: '#fffbeb', border: '1px solid #f5d080', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
