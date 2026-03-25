@@ -1,6 +1,6 @@
 import { db } from './firebase';
 import {
-  collection, addDoc, getDocs, doc, updateDoc,
+  collection, addDoc, getDocs, doc, updateDoc, setDoc, getDoc,
   query, where, orderBy, serverTimestamp
 } from 'firebase/firestore';
 
@@ -45,6 +45,7 @@ export async function getUserCampaigns(userId) {
     return [];
   }
 }
+
 export async function saveBrandProfile(userId, profile) {
   try {
     const ref = doc(db, 'brandProfiles', userId);
