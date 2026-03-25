@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
-import { saveCampaign } from '../lib/campaigns';
 import { saveCampaign, getBrandProfile } from '../lib/campaigns';
 
 export function useCampaign() {
