@@ -14,6 +14,7 @@ import CampaignHistory from './components/CampaignHistory';
 import BrandProfile from './components/BrandProfile';
 import { exportStoryboardPDF } from './lib/exportPDF';
 import BrandGuard from './components/BrandGuard';
+import OnboardingModal from './components/OnboardingModal';
 
 export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
@@ -270,7 +271,7 @@ export default function Home() {
                 </div>
               </div>
             )}
-
+        <OnboardingModal />
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </>
         )}
