@@ -6,25 +6,26 @@ export default function LoginPage() {
   const { signInWithGoogle } = useAuth();
 
   return (
-    <div style={{
+<div style={{
       minHeight: '100vh',
       display: 'flex',
+      flexDirection: 'column',
       fontFamily: '"Segoe UI", -apple-system, sans-serif',
       background: '#f8f8f8',
     }}>
 
       {/* Left panel — branding */}
-      <div style={{
-        width: '52%',
+<div style={{
+        width: '100%',
         background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f1729 100%)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '48px 56px',
+        padding: '32px 28px',
         position: 'relative',
         overflow: 'hidden',
+        minHeight: '280px',
       }}>
-
         <div style={{
           position: 'absolute', top: '-80px', right: '-80px',
           width: '400px', height: '400px', borderRadius: '50%',
@@ -102,7 +103,7 @@ export default function LoginPage() {
         </div>
 
         {/* Bottom */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '24px' }}>
+<div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px', display: 'none' }}>
           <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
             Powered by eFusion Technology · Singapore · 21 Years in Digital Solutions
           </p>
@@ -110,12 +111,12 @@ export default function LoginPage() {
       </div>
 
       {/* Right panel — login */}
-      <div style={{
+ <div style={{
         flex: 1,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '48px 40px',
+        padding: '32px 24px',
         background: '#ffffff',
       }}>
         <div style={{ width: '100%', maxWidth: '380px' }}>

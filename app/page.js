@@ -52,8 +52,7 @@ export default function Home() {
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
 
       {/* Sidebar */}
-      <div style={{ width: '220px', flexShrink: 0, borderRight: '1px solid #e0e0e0', background: '#fafafa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '16px', borderBottom: '1px solid #e0e0e0' }}>
+<div style={{ width: '220px', flexShrink: 0, borderRight: '1px solid #e0e0e0', background: '#fafafa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }} className="sidebar">        <div style={{ padding: '16px', borderBottom: '1px solid #e0e0e0' }}>
           <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#999', fontFamily: 'monospace', marginBottom: '10px' }}>
             My Storyboards
           </div>
