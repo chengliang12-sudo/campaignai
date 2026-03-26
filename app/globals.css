@@ -25,12 +25,51 @@ body {
     text-wrap: balance;
   }
 }
+
+/* ─── Mobile responsive ─────────────────────────────── */
+
 @media (max-width: 768px) {
+
+  /* Sidebar — hidden by default, slides in when open */
   .sidebar {
+    display: flex !important;
+    position: fixed !important;
+    top: 0; left: 0;
+    height: 100vh;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  /* Backdrop — shown when sidebar is open */
+  .sidebar-backdrop {
+    display: block !important;
+  }
+
+  /* Hamburger menu button — visible on mobile */
+  .mobile-menu-btn {
+    display: block !important;
+  }
+
+  /* Main content — full width, reduced padding, offset for menu button */
+  .main-content {
+    padding: 16px !important;
+    padding-top: 56px !important; /* space for fixed hamburger */
+  }
+
+  /* Login page — tagline hidden on mobile */
+  .login-tagline {
     display: none !important;
   }
 
-  main {
-    padding: 20px !important;
+  /* Storyboard header — stack on mobile */
+  .storyboard-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
   }
 }

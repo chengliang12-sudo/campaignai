@@ -6,7 +6,7 @@ export default function LoginPage() {
   const { signInWithGoogle } = useAuth();
 
   return (
-<div style={{
+    <div style={{
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
@@ -15,7 +15,7 @@ export default function LoginPage() {
     }}>
 
       {/* Left panel — branding */}
-<div style={{
+      <div style={{
         width: '100%',
         background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f1729 100%)',
         display: 'flex',
@@ -39,7 +39,7 @@ export default function LoginPage() {
           pointerEvents: 'none',
         }} />
 
-{/* Logo */}
+        {/* Logo */}
         <div>
           <img
             src="/images/efusion_logo.svg"
@@ -102,8 +102,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Bottom */}
-<div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px', display: 'none' }}>
+        {/* Bottom tagline — hidden on mobile, visible on desktop */}
+        <div className="login-tagline" style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
           <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', margin: 0 }}>
             Powered by eFusion Technology · Singapore · 21 Years in Digital Solutions
           </p>
@@ -111,7 +111,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right panel — login */}
- <div style={{
+      <div style={{
         flex: 1,
         display: 'flex',
         alignItems: 'center',
@@ -185,13 +185,12 @@ export default function LoginPage() {
             </div>
           </div>
 
-             <div style={{
+          <div style={{
             fontSize: '12px', color: '#bbb', textAlign: 'center',
             marginTop: '28px', lineHeight: '1.6',
           }}>
             By signing in you agree to our terms of use.{' '}
-            
-             <a href="https://www.efusiontech.com"
+            <a href="https://www.efusiontech.com"
               target="_blank"
               rel="noopener noreferrer"
               style={{ color: '#e91e8c', textDecoration: 'none' }}

@@ -20,6 +20,7 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [showBrandProfile, setShowBrandProfile] = useState(false);
   const [noticeDismissed, setNoticeDismissed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const campaign = useCampaign();
   const { user, loading, logout } = useAuth();
 
@@ -46,13 +47,38 @@ export default function Home() {
     campaign.setSceneMedia({});
     setNoticeDismissed(false);
     setShowBrandProfile(false);
+    setSidebarOpen(false);
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif', position: 'relative' }}>
+
+      {/* Mobile sidebar overlay backdrop */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            display: 'none',
+            position: 'fixed', inset: 0,
+            background: 'rgba(0,0,0,0.4)',
+            zIndex: 99,
+          }}
+          className="sidebar-backdrop"
+        />
+      )}
 
       {/* Sidebar */}
-<div style={{ width: '220px', flexShrink: 0, borderRight: '1px solid #e0e0e0', background: '#fafafa', minHeight: '100vh', display: 'flex', flexDirection: 'column' }} className="sidebar">        <div style={{ padding: '16px', borderBottom: '1px solid #e0e0e0' }}>
+      <div
+        className={`sidebar${sidebarOpen ? ' sidebar-open' : ''}`}
+        style={{
+          width: '220px', flexShrink: 0,
+          borderRight: '1px solid #e0e0e0',
+          background: '#fafafa',
+          minHeight: '100vh',
+          display: 'flex', flexDirection: 'column',
+        }}
+      >
+        <div style={{ padding: '16px', borderBottom: '1px solid #e0e0e0' }}>
           <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#999', fontFamily: 'monospace', marginBottom: '10px' }}>
             My Storyboards
           </div>
@@ -78,6 +104,7 @@ export default function Home() {
             onClick={() => {
               setShowBrandProfile(true);
               setShowSettings(false);
+              setSidebarOpen(false);
             }}
             style={{
               width: '100%', padding: '8px 12px', borderRadius: '8px',
@@ -111,13 +138,31 @@ export default function Home() {
               campaign.setSceneMedia({});
               setNoticeDismissed(false);
               setShowBrandProfile(false);
+              setSidebarOpen(false);
             }}
           />
         </div>
       </div>
 
       {/* Main */}
-      <main style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
+      <main style={{ flex: 1, padding: '40px', overflowY: 'auto' }} className="main-content">
+
+        {/* Mobile menu button */}
+        <button
+          onClick={() => setSidebarOpen(s => !s)}
+          className="mobile-menu-btn"
+          style={{
+            display: 'none',
+            position: 'fixed', top: '14px', left: '14px', zIndex: 101,
+            background: '#1a1a1a', color: '#fff',
+            border: 'none', borderRadius: '8px',
+            padding: '8px 10px', cursor: 'pointer',
+            fontSize: '16px', lineHeight: 1,
+          }}
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
 
         <Header
           onSettingsClick={() => {
@@ -174,9 +219,9 @@ export default function Home() {
 
             {campaign.scenes && (
               <div style={{ marginBottom: '48px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>Your Storyboard</h2>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', flexWrap: 'wrap', gap: '8px' }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>Your Storyboard</h2>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <button
                       onClick={() => exportStoryboardPDF({
                         analysis: campaign.analysis,
@@ -213,13 +258,14 @@ export default function Home() {
                     </span>
                   )}
                 </p>
+
                 {/* BrandGuard */}
                 <BrandGuard
                   scenes={campaign.scenes}
                   brandProfile={campaign.brandProfile}
                   analysis={campaign.analysis}
                 />
-                
+
                 {/* Storage notice banner */}
                 {!noticeDismissed && (
                   <div style={{ background: '#fffbeb', border: '1px solid #f5d080', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
@@ -270,11 +316,13 @@ export default function Home() {
                 </div>
               </div>
             )}
-        <OnboardingModal 
-         onSave={({ falKey, elevenLabsKey }) => {
-            if (falKey) campaign.setFalKey(falKey);
-            if (elevenLabsKey) campaign.setElevenLabsKey(elevenLabsKey);
-          }}/>
+
+            <OnboardingModal
+              onSave={({ falKey, elevenLabsKey }) => {
+                if (falKey) campaign.setFalKey(falKey);
+                if (elevenLabsKey) campaign.setElevenLabsKey(elevenLabsKey);
+              }}
+            />
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </>
         )}
