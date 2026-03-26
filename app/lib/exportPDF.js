@@ -96,7 +96,7 @@ function footers(doc, totalPages) {
     doc.setPage(i);
     doc.setFontSize(7);
     setColor(doc, COLORS.hint);
-    doc.text('CampaignAI', MARGIN, PAGE_H - 8);
+    doc.text('AIGCStudio by eFusion', MARGIN, PAGE_H - 8);
     doc.text(`${i} / ${totalPages}`, PAGE_W - MARGIN, PAGE_H - 8, { align: 'right' });
   }
 }
@@ -113,23 +113,36 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
   const logoX = (PAGE_W - logoW) / 2;
   const logoY = PAGE_H / 2 - 32;
 
-  setColor(doc, COLORS.white, 'fill');
-  doc.roundedRect(logoX, logoY, logoW, logoH, 3, 3, 'F');
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  setColor(doc, COLORS.black);
-  doc.text('CampaignAI', PAGE_W / 2, logoY + 10.5, { align: 'center' });
+  // Logo pill
+  setColor(doc, [30, 30, 30], 'fill');
+  doc.roundedRect(logoX - 10, logoY - 4, logoW + 20, logoH + 8, 4, 4, 'F');
 
-  doc.setFontSize(11);
+  // AIGC in white, Studio in pink
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  setColor(doc, COLORS.white);
+  doc.text('AIGC', PAGE_W / 2 - 10, logoY + 9, { align: 'right' });
+  setColor(doc, [233, 30, 140]);
+  doc.text('Studio', PAGE_W / 2 - 8, logoY + 9, { align: 'left' });
+
+  // by eFusion Technology
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   setColor(doc, [160, 155, 148]);
-  doc.text('Campaign Storyboard', PAGE_W / 2, logoY + 30, { align: 'center' });
+  doc.text('by eFusion Technology', PAGE_W / 2, logoY + 20, { align: 'center' });
 
+  // Campaign Storyboard
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  setColor(doc, [140, 135, 128]);
+  doc.text('Campaign Storyboard', PAGE_W / 2, logoY + 34, { align: 'center' });
+
+  // Date
   doc.setFontSize(8);
   setColor(doc, [100, 96, 90]);
   doc.text(
     new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-    PAGE_W / 2, logoY + 40, { align: 'center' }
+    PAGE_W / 2, logoY + 44, { align: 'center' }
   );
 
   // ── PAGE 2 — CAMPAIGN OVERVIEW ───────────────────────────────
@@ -168,7 +181,7 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
   y += 5;
   y += bodyText(doc, analysis?.cta, MARGIN, y, CONTENT_W) + 8;
 
-  // Brand profile section on page 2
+  // Brand profile section
   if (brandProfile?.brandName || brandProfile?.brandVoice || brandProfile?.brandRules) {
     y = checkPageBreak(doc, y, 40);
     divider(doc, y);
@@ -391,7 +404,7 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
     divider(doc, y);
     y += 8;
 
-    // Scene description — full width
+    // Scene description
     label(doc, 'Scene Description', MARGIN, y);
     y += 5;
     y += bodyText(doc, scene.action_description, MARGIN, y, CONTENT_W) + 8;
@@ -400,7 +413,7 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
     divider(doc, y);
     y += 8;
 
-    // Voiceover — full width
+    // Voiceover
     label(doc, 'Voiceover Script', MARGIN, y);
     y += 5;
     y += bodyText(doc, `"${scene.voiceover_script}"`, MARGIN, y, CONTENT_W, {
@@ -411,7 +424,7 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
     divider(doc, y);
     y += 8;
 
-    // Animatic prompt — secondary, muted
+    // Animatic prompt
     label(doc, 'Animatic Prompt', MARGIN, y);
     y += 5;
     const promptLines = doc.splitTextToSize(scene.visual_prompt || '—', CONTENT_W);
@@ -420,7 +433,7 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
     setColor(doc, COLORS.hint);
     doc.text(promptLines.slice(0, 5), MARGIN, y);
 
-    // Transition note
+    // Transition
     if (scene.transition_to_next) {
       doc.setFontSize(8);
       setColor(doc, COLORS.hint);
@@ -428,7 +441,7 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
     }
   }
 
-  // Footers on all pages
+  // Footers
   footers(doc, doc.getNumberOfPages());
 
   const filename = `${(direction?.creative_title || 'storyboard')
