@@ -4,7 +4,7 @@ export default function Header({ onSettingsClick, user, onLogout }) {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
           <img
-            src="/images/efusion_logo.png"
+            src="/images/efusion_logo.svg"
             alt="eFusion"
             style={{ height: '28px', width: 'auto' }}
           />
