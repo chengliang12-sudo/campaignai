@@ -2,8 +2,8 @@ import { AuthProvider } from './lib/AuthContext';
 import './globals.css';
 
 export const metadata = {
-  title: 'CampaignAI',
-  description: 'AI-powered marketing campaign generator',
+  title: 'AIGCStudio by eFusion',
+  description: 'AI-powered marketing campaign storyboard generator by eFusion Technology',
 };
 
 export default function RootLayout({ children }) {
