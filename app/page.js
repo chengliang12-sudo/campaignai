@@ -271,7 +271,11 @@ export default function Home() {
                 </div>
               </div>
             )}
-        <OnboardingModal />
+        <OnboardingModal 
+         onSave={({ falKey, elevenLabsKey }) => {
+            if (falKey) campaign.setFalKey(falKey);
+            if (elevenLabsKey) campaign.setElevenLabsKey(elevenLabsKey);
+          }}/>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </>
         )}

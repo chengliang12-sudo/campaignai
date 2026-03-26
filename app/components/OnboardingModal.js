@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-export default function OnboardingModal({ onComplete }) {
+export default function OnboardingModal({ onComplete, onSave }) {
   const [falKey, setFalKey] = useState('');
   const [elevenLabsKey, setElevenLabsKey] = useState('');
   const [visible, setVisible] = useState(false);
@@ -20,6 +20,7 @@ export default function OnboardingModal({ onComplete }) {
     if (elevenLabsKey.trim()) localStorage.setItem('elevenlabs_api_key', elevenLabsKey.trim());
     localStorage.setItem('onboarding_dismissed', 'true');
     setVisible(false);
+    onSave?.({ falKey: falKey.trim(), elevenLabsKey: elevenLabsKey.trim() });
     onComplete?.();
   }
 
