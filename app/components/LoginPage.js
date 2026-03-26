@@ -41,7 +41,7 @@ export default function LoginPage() {
 {/* Logo */}
         <div>
           <img
-            src="/images/efusion_logo.png"
+            src="/images/efusion_logo.svg"
             alt="eFusion Technology"
             style={{ height: '44px', width: 'auto' }}
           />
