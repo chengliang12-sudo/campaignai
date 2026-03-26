@@ -113,38 +113,53 @@ export async function exportStoryboardPDF({ analysis, direction, scenes, sceneIm
   const logoX = (PAGE_W - logoW) / 2;
   const logoY = PAGE_H / 2 - 32;
 
-  // Logo pill
-  setColor(doc, [30, 30, 30], 'fill');
-  doc.roundedRect(logoX - 10, logoY - 4, logoW + 20, logoH + 8, 4, 4, 'F');
-
-  // AIGC in white, Studio in pink
-  doc.setFontSize(16);
+// Measure text widths to calculate exact center positioning
+  doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
+  const aigcWidth = doc.getTextWidth('AIGC');
+  const studioWidth = doc.getTextWidth('Studio');
+  const totalWidth = aigcWidth + studioWidth + 2;
+  const textStartX = (PAGE_W - totalWidth) / 2;
+
+  // Logo pill sized to text
+  const pillW = totalWidth + 28;
+  const pillH = 20;
+  const pillX = (PAGE_W - pillW) / 2;
+  const pillY = logoY - 4;
+  setColor(doc, [30, 30, 30], 'fill');
+  doc.roundedRect(pillX, pillY, pillW, pillH, 5, 5, 'F');
+
+  // AIGC white + Studio pink — perfectly adjacent
   setColor(doc, COLORS.white);
-  doc.text('AIGC', PAGE_W / 2 - 10, logoY + 9, { align: 'right' });
+  doc.text('AIGC', textStartX, logoY + 10);
   setColor(doc, [233, 30, 140]);
-  doc.text('Studio', PAGE_W / 2 - 8, logoY + 9, { align: 'left' });
+  doc.text('Studio', textStartX + aigcWidth + 2, logoY + 10);
 
   // by eFusion Technology
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   setColor(doc, [160, 155, 148]);
-  doc.text('by eFusion Technology', PAGE_W / 2, logoY + 20, { align: 'center' });
+  doc.text('by eFusion Technology', PAGE_W / 2, logoY + 26, { align: 'center' });
+
+  // Divider line
+  setColor(doc, [60, 60, 60], 'draw');
+  doc.setLineWidth(0.3);
+  doc.line(PAGE_W / 2 - 30, logoY + 34, PAGE_W / 2 + 30, logoY + 34);
 
   // Campaign Storyboard
-  doc.setFontSize(11);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  setColor(doc, [140, 135, 128]);
-  doc.text('Campaign Storyboard', PAGE_W / 2, logoY + 34, { align: 'center' });
+  setColor(doc, [130, 125, 118]);
+  doc.text('Campaign Storyboard', PAGE_W / 2, logoY + 44, { align: 'center' });
 
   // Date
   doc.setFontSize(8);
-  setColor(doc, [100, 96, 90]);
+  setColor(doc, [90, 86, 80]);
   doc.text(
     new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-    PAGE_W / 2, logoY + 44, { align: 'center' }
+    PAGE_W / 2, logoY + 52, { align: 'center' }
   );
-
+  
   // ── PAGE 2 — CAMPAIGN OVERVIEW ───────────────────────────────
   doc.addPage();
   let y = pageHeader(doc, 'Campaign Overview');
