@@ -72,4 +72,34 @@ body {
     flex-direction: column !important;
     align-items: flex-start !important;
   }
+
+  /* ─── Wizard chip overrides ─────────────────────── */
+
+  /* Wide chips — full width on mobile */
+  .wizard-wide-chip {
+    flex: 1 1 100% !important;
+    min-width: unset !important;
+  }
+
+  /* Square chips — two per row on mobile */
+  .wizard-square-chip {
+    flex: 1 1 calc(50% - 8px) !important;
+    min-width: unset !important;
+  }
+
+  /* Wizard card — tighter padding on mobile */
+  .wizard-card {
+    padding: 16px 14px 14px !important;
+  }
+
+  /* Wizard step labels — hide text on mobile, keep progress bar */
+  .wizard-step-label {
+    display: none !important;
+  }
+
+  /* Mode toggle buttons — equal width on mobile */
+  .brief-mode-toggle {
+    flex: 1 !important;
+    justify-content: center !important;
+  }
 }
