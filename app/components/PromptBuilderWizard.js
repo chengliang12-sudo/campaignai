@@ -3,24 +3,24 @@
 import { useState } from 'react';
 
 // ── Brand tokens ──────────────────────────────────────
-const PINK        = '#e91e8c';
-const PINK_LIGHT  = '#fce4f3';
-const PINK_BG     = '#fff0f9';
-const DARK        = '#1E293B';
-const MID         = '#64748B';
-const LIGHT_BORDER= '#E2E8F0';
-const WHITE       = '#FFFFFF';
-const AMBER       = '#D97706';
-const AMBER_LIGHT = '#FEF3C7';
+const PINK         = '#e91e8c';
+const PINK_LIGHT   = '#fce4f3';
+const PINK_BG      = '#fff0f9';
+const DARK         = '#1E293B';
+const MID          = '#64748B';
+const LIGHT_BORDER = '#E2E8F0';
+const WHITE        = '#FFFFFF';
+const AMBER        = '#D97706';
+const AMBER_LIGHT  = '#FEF3C7';
 
 // ── Step definitions ──────────────────────────────────
 const steps = [
-  { id: 'platform', label: 'Platform',  question: 'Where will this video be posted?' },
-  { id: 'audience', label: 'Audience',  question: 'Who are you trying to reach?' },
-  { id: 'format',   label: 'Format',    question: 'What kind of video is this?' },
-  { id: 'style',    label: 'Style',     question: 'How should it look and feel?' },
-  { id: 'details',  label: 'Details',   question: 'A few final details' },
-  { id: 'review',   label: 'Review',    question: "Here's what we'll generate" },
+  { id: 'platform', label: 'Platform', question: 'Where is this campaign going?' },
+  { id: 'audience', label: 'Audience', question: 'Who are you trying to reach?' },
+  { id: 'format',   label: 'Format',   question: 'What kind of video is this?' },
+  { id: 'style',    label: 'Style',    question: 'How should it look and feel?' },
+  { id: 'details',  label: 'Details',  question: 'A few final details' },
+  { id: 'review',   label: 'Review',   question: "Here's what we'll generate" },
 ];
 
 // ── Option data ───────────────────────────────────────
@@ -40,31 +40,50 @@ const audienceAge = [
   { id: 'millennials', label: 'Millennials', sub: '28–43' },
   { id: 'gen-x',       label: 'Gen X',       sub: '44–59' },
   { id: 'boomers',     label: 'Boomers',     sub: '60+' },
-  { id: 'all-ages',    label: 'All ages',    sub: 'Broad audience' },
 ];
 
 const audienceAwareness = [
-  { id: 'cold',     label: 'Never heard of us',       sub: 'Need to introduce who we are' },
-  { id: 'warm',     label: "Know us, haven't bought", sub: 'Need a reason to convert' },
-  { id: 'existing', label: 'Existing customer',       sub: 'Re-engage or upsell' },
+  { id: 'cold',     label: 'Never heard of us',        sub: 'Need to introduce who we are' },
+  { id: 'warm',     label: "Know us, haven't bought",  sub: 'Need a reason to convert' },
+  { id: 'existing', label: 'Existing customer',        sub: 'Re-engage or upsell' },
 ];
 
 const formatOptions = [
-  { id: 'product-showcase', label: 'Product Showcase',        sub: 'Highlight features, show it in use' },
-  { id: 'brand-story',      label: 'Brand Story',             sub: 'Who you are, why you exist' },
+  { id: 'product-showcase', label: 'Product Showcase',           sub: 'Highlight features, show it in use' },
+  { id: 'brand-story',      label: 'Brand Story',                sub: 'Who you are, why you exist' },
   { id: 'testimonial',      label: 'Testimonial / Social Proof', sub: 'Customer experience' },
-  { id: 'bts',              label: 'Behind the Scenes',       sub: 'Your process, your team' },
-  { id: 'tutorial',         label: 'How-To / Tutorial',       sub: 'Teach something useful' },
-  { id: 'seasonal',         label: 'Seasonal / Event',        sub: 'CNY, NDP, launch, sale' },
-  { id: 'announcement',     label: 'Announcement',            sub: 'New product, location, offer' },
-  { id: 'comparison',       label: 'Before / After',          sub: 'Transformation or comparison' },
+  { id: 'bts',              label: 'Behind the Scenes',          sub: 'Your process, your team' },
+  { id: 'tutorial',         label: 'How-To / Tutorial',          sub: 'Teach something useful' },
+  { id: 'seasonal',         label: 'Seasonal / Event',           sub: 'CNY, NDP, launch, sale' },
+  { id: 'announcement',     label: 'Announcement',               sub: 'New product, location, offer' },
+  { id: 'comparison',       label: 'Before / After',             sub: 'Transformation or comparison' },
 ];
 
-const structureOptions = [
-  { id: 'single',  label: 'Single Video',      sub: 'One standalone piece' },
-  { id: 'series',  label: 'Multi-Part Series', sub: '2–4 connected episodes' },
-  { id: 'burst',   label: 'Campaign Burst',    sub: '3–5 variations of same message' },
-  { id: 'ongoing', label: 'Recurring Format',  sub: 'Weekly tips, monthly features' },
+const ambitionOptions = [
+  {
+    id: 'hero',
+    label: 'One-off hero piece',
+    sub: 'Single strong narrative, complete story arc',
+    arc: 'Build the storyboard as a complete, self-contained narrative with a strong opening, compelling middle, and definitive close.',
+  },
+  {
+    id: 'series',
+    label: 'Part of a series',
+    sub: 'Leave narrative open, teaser ending',
+    arc: 'Structure the storyboard so the narrative feels like one chapter in a larger story — open with context, end with a teaser that invites the next episode.',
+  },
+  {
+    id: 'variations',
+    label: 'Testing variations',
+    sub: 'Modular scenes, swap-friendly structure',
+    arc: 'Design each scene to be modular and independently swappable — avoid over-linking scenes so individual scenes can be tested or replaced without breaking the whole.',
+  },
+  {
+    id: 'always-on',
+    label: 'Always-on content',
+    sub: 'Repeatable format, consistent structure',
+    arc: 'Use a repeatable, templated scene structure that can be refreshed with new content regularly while keeping a consistent format and rhythm.',
+  },
 ];
 
 const toneOptions = [
@@ -121,12 +140,17 @@ function getLabel(options, id) {
   return options.find(o => o.id === id)?.label || id;
 }
 
+function getArc(id) {
+  return ambitionOptions.find(o => o.id === id)?.arc || '';
+}
+
 function buildBriefString(selections) {
-  const platform  = selections.platforms.map(p => getLabel(platformOptions, p)).join(' and ');
+  const topic     = selections.topic.trim();
+  const platform  = selections.platforms.map(p => getLabel(platformOptions, p)).join(', ');
   const age       = selections.ageGroup.map(a => getLabel(audienceAge, a)).join(', ');
   const awareness = getLabel(audienceAwareness, selections.awareness);
   const format    = getLabel(formatOptions, selections.format);
-  const structure = getLabel(structureOptions, selections.structure);
+  const arc       = getArc(selections.ambition);
   const tone      = getLabel(toneOptions, selections.tone);
   const visual    = getLabel(visualOptions, selections.visual);
   const hook      = getLabel(hookOptions, selections.hook);
@@ -134,12 +158,14 @@ function buildBriefString(selections) {
   const duration  = getLabel(durationOptions, selections.duration);
 
   return (
-    `Create a ${duration} ${format.toLowerCase()} video campaign for ${platform}. ` +
+    `Campaign topic: ${topic}. ` +
+    `Create a 30-second master storyboard for a ${format.toLowerCase()} video campaign targeting ${platform}. ` +
     `Target audience: ${age} — ${awareness.toLowerCase()}. ` +
+    `Narrative direction: ${arc} ` +
     `Tone: ${tone.toLowerCase()}. Visual style: ${visual.toLowerCase()}. ` +
     `Open the video with: ${hook.toLowerCase()}. ` +
     `Call to action: ${cta.toLowerCase()}. ` +
-    `Campaign structure: ${structure.toLowerCase()}.`
+    `Target duration for full production: ${duration.toLowerCase()}.`
   );
 }
 
@@ -150,19 +176,13 @@ function WideChip({ selected, onClick, children, sub }) {
       onClick={onClick}
       className="wizard-wide-chip"
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        padding: '10px 16px',
-        borderRadius: 10,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'flex-start', justifyContent: 'center',
+        padding: '10px 16px', borderRadius: 10,
         border: `1.5px solid ${selected ? PINK : LIGHT_BORDER}`,
         background: selected ? PINK_BG : WHITE,
-        cursor: 'pointer',
-        flex: '1 1 45%',
-        minWidth: 180,
-        transition: 'all 0.15s',
-        textAlign: 'left',
+        cursor: 'pointer', flex: '1 1 45%', minWidth: 180,
+        transition: 'all 0.15s', textAlign: 'left',
       }}
     >
       <span style={{ fontSize: 13, fontWeight: 600, color: selected ? PINK : DARK }}>{children}</span>
@@ -177,18 +197,13 @@ function SquareChip({ selected, onClick, children, sub }) {
       onClick={onClick}
       className="wizard-square-chip"
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '12px 16px',
-        borderRadius: 10,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        padding: '12px 16px', borderRadius: 10,
         border: `1.5px solid ${selected ? PINK : LIGHT_BORDER}`,
         background: selected ? PINK_BG : WHITE,
-        cursor: 'pointer',
-        minWidth: 110,
-        transition: 'all 0.15s',
-        textAlign: 'center',
+        cursor: 'pointer', minWidth: 110,
+        transition: 'all 0.15s', textAlign: 'center',
       }}
     >
       <span style={{ fontSize: 13, fontWeight: 600, color: selected ? PINK : DARK }}>{children}</span>
@@ -202,16 +217,13 @@ function PillChip({ selected, onClick, children }) {
     <button
       onClick={onClick}
       style={{
-        padding: '8px 16px',
-        borderRadius: 20,
+        padding: '8px 16px', borderRadius: 20,
         border: `1.5px solid ${selected ? PINK : LIGHT_BORDER}`,
         background: selected ? PINK_BG : WHITE,
-        cursor: 'pointer',
-        fontSize: 12,
+        cursor: 'pointer', fontSize: 12,
         fontWeight: selected ? 600 : 400,
         color: selected ? PINK : DARK,
-        transition: 'all 0.15s',
-        whiteSpace: 'nowrap',
+        transition: 'all 0.15s', whiteSpace: 'nowrap',
       }}
     >
       {children}
@@ -235,11 +247,12 @@ function SectionLabel({ children }) {
 export default function PromptBuilderWizard({ onComplete }) {
   const [step, setStep] = useState(0);
   const [selections, setSelections] = useState({
+    topic: '',
     platforms: [],
     ageGroup: [],
     awareness: '',
     format: '',
-    structure: '',
+    ambition: '',
     tone: '',
     visual: '',
     hook: '',
@@ -257,9 +270,9 @@ export default function PromptBuilderWizard({ onComplete }) {
     setSelections(s => ({ ...s, [key]: s[key] === val ? '' : val }));
 
   const canNext =
-    step === 0 ? selections.platforms.length > 0 :
+    step === 0 ? selections.topic.trim().length > 0 && selections.platforms.length > 0 :
     step === 1 ? selections.ageGroup.length > 0 && selections.awareness :
-    step === 2 ? selections.format && selections.structure :
+    step === 2 ? selections.format && selections.ambition :
     step === 3 ? selections.tone && selections.visual :
     step === 4 ? selections.hook && selections.cta && selections.duration :
     true;
@@ -269,11 +282,42 @@ export default function PromptBuilderWizard({ onComplete }) {
   // ── Step renderers ────────────────────────────────
   const renderStep = () => {
     switch (step) {
+
       case 0:
         return (
           <div>
-            <p style={{ fontSize: 13, color: MID, marginBottom: 16 }}>
-              Select one or more platforms. We'll adapt the storyboard for each.
+            {/* Topic input */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={{
+                display: 'block', fontSize: 11, fontWeight: 700,
+                color: PINK, textTransform: 'uppercase',
+                letterSpacing: 1, marginBottom: 8,
+              }}>
+                What's your campaign about?
+              </label>
+              <input
+                type="text"
+                value={selections.topic}
+                onChange={e => setSelections(s => ({ ...s, topic: e.target.value }))}
+                placeholder="e.g. New matcha latte launch, summer sale, brand awareness for fintech app"
+                style={{
+                  width: '100%', padding: '12px 14px',
+                  fontSize: 14, borderRadius: 8,
+                  border: `1.5px solid ${selections.topic.trim() ? PINK : LIGHT_BORDER}`,
+                  outline: 'none', boxSizing: 'border-box',
+                  color: DARK, background: WHITE,
+                  transition: 'border-color 0.15s',
+                }}
+              />
+              <p style={{ fontSize: 11, color: MID, marginTop: 6, marginBottom: 0 }}>
+                This anchors the entire storyboard. Be specific — the more context, the better the output.
+              </p>
+            </div>
+
+            {/* Platform chips */}
+            <SectionLabel>Where will this be posted?</SectionLabel>
+            <p style={{ fontSize: 13, color: MID, marginBottom: 12, marginTop: 0 }}>
+              Select one or more platforms. Your selections will inform the pacing, framing notes, and scene direction of the master storyboard.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
               {platformOptions.map(p => (
@@ -287,9 +331,15 @@ export default function PromptBuilderWizard({ onComplete }) {
                 </WideChip>
               ))}
             </div>
+
+            {/* Multi-platform notice */}
             {selections.platforms.length > 1 && (
-              <div style={{ marginTop: 16, padding: '10px 14px', background: AMBER_LIGHT, borderRadius: 8, fontSize: 12, color: AMBER }}>
-                <strong>Multi-platform selected.</strong> We'll generate a storyboard adapted for each platform's pacing and format.
+              <div style={{
+                marginTop: 16, padding: '10px 14px',
+                background: AMBER_LIGHT, borderRadius: 8,
+                fontSize: 12, color: AMBER,
+              }}>
+                <strong>Multiple platforms selected.</strong> We'll generate one master 30-second storyboard. Your platform selections will shape the pacing, aspect ratio notes, and scene direction — you can adapt it for each platform after.
               </div>
             )}
           </div>
@@ -343,16 +393,20 @@ export default function PromptBuilderWizard({ onComplete }) {
                 </WideChip>
               ))}
             </div>
-            <SectionLabel>How many videos?</SectionLabel>
+
+            <SectionLabel>Campaign ambition</SectionLabel>
+            <p style={{ fontSize: 12, color: MID, marginTop: 0, marginBottom: 12 }}>
+              This shapes the narrative arc of your storyboard — not the number of videos generated. You'll always receive one master 30-second storyboard.
+            </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-              {structureOptions.map(s => (
+              {ambitionOptions.map(a => (
                 <WideChip
-                  key={s.id}
-                  selected={selections.structure === s.id}
-                  onClick={() => set('structure', s.id)}
-                  sub={s.sub}
+                  key={a.id}
+                  selected={selections.ambition === a.id}
+                  onClick={() => set('ambition', a.id)}
+                  sub={a.sub}
                 >
-                  {s.label}
+                  {a.label}
                 </WideChip>
               ))}
             </div>
@@ -405,6 +459,7 @@ export default function PromptBuilderWizard({ onComplete }) {
                 </WideChip>
               ))}
             </div>
+
             <SectionLabel>What should viewers do after watching?</SectionLabel>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {ctaOptions.map(c => (
@@ -417,7 +472,11 @@ export default function PromptBuilderWizard({ onComplete }) {
                 </PillChip>
               ))}
             </div>
-            <SectionLabel>How long?</SectionLabel>
+
+            <SectionLabel>Target duration for full production</SectionLabel>
+            <p style={{ fontSize: 12, color: MID, marginTop: 0, marginBottom: 12 }}>
+              Your storyboard will always be structured as a 30-second master. This selection captures your intended final production length for your production team's reference.
+            </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
               {durationOptions.map(d => (
                 <SquareChip
@@ -440,20 +499,31 @@ export default function PromptBuilderWizard({ onComplete }) {
               Review your selections. Click "Use this brief" to edit wording before generating.
             </p>
 
+            {/* Output spec banner */}
+            <div style={{
+              padding: '10px 14px', borderRadius: 8,
+              background: '#f0fdf4', border: '1px solid #bbf7d0',
+              fontSize: 12, color: '#166534', marginBottom: 16,
+            }}>
+              <strong>Output:</strong> One master 30-second storyboard · 3 scenes · ~10s per scene
+            </div>
+
             {/* Summary table */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
               {[
-                ['Platform',       selections.platforms.map(p => getLabel(platformOptions, p)).join(', ')],
-                ['Audience',       `${selections.ageGroup.map(a => getLabel(audienceAge, a)).join(', ')} · ${getLabel(audienceAwareness, selections.awareness)}`],
-                ['Format',         `${getLabel(formatOptions, selections.format)} · ${getLabel(structureOptions, selections.structure)}`],
-                ['Tone',           getLabel(toneOptions, selections.tone)],
-                ['Visual Style',   getLabel(visualOptions, selections.visual)],
-                ['Hook',           getLabel(hookOptions, selections.hook)],
-                ['Call to Action', getLabel(ctaOptions, selections.cta)],
-                ['Duration',       getLabel(durationOptions, selections.duration)],
+                ['Topic',            selections.topic],
+                ['Platform',         selections.platforms.map(p => getLabel(platformOptions, p)).join(', ')],
+                ['Audience',         `${selections.ageGroup.map(a => getLabel(audienceAge, a)).join(', ')} · ${getLabel(audienceAwareness, selections.awareness)}`],
+                ['Format',           getLabel(formatOptions, selections.format)],
+                ['Campaign ambition',getLabel(ambitionOptions, selections.ambition)],
+                ['Tone',             getLabel(toneOptions, selections.tone)],
+                ['Visual Style',     getLabel(visualOptions, selections.visual)],
+                ['Hook',             getLabel(hookOptions, selections.hook)],
+                ['Call to Action',   getLabel(ctaOptions, selections.cta)],
+                ['Target duration',  getLabel(durationOptions, selections.duration)],
               ].map(([label, value]) => (
                 <div key={label} style={{ display: 'flex', borderBottom: `1px solid ${LIGHT_BORDER}`, paddingBottom: 8 }}>
-                  <span style={{ width: 130, fontSize: 12, fontWeight: 700, color: PINK, flexShrink: 0 }}>{label}</span>
+                  <span style={{ width: 140, fontSize: 12, fontWeight: 700, color: PINK, flexShrink: 0 }}>{label}</span>
                   <span style={{ fontSize: 13, color: DARK }}>{value || '—'}</span>
                 </div>
               ))}
@@ -461,10 +531,8 @@ export default function PromptBuilderWizard({ onComplete }) {
 
             {/* Assembled brief preview */}
             <div style={{
-              padding: '14px 16px',
-              background: PINK_BG,
-              borderRadius: 10,
-              border: `1px solid ${PINK_LIGHT}`,
+              padding: '14px 16px', background: PINK_BG,
+              borderRadius: 10, border: `1px solid ${PINK_LIGHT}`,
               marginBottom: 12,
             }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: PINK, marginBottom: 6, letterSpacing: '0.05em' }}>
@@ -495,14 +563,17 @@ export default function PromptBuilderWizard({ onComplete }) {
         {steps.map((s, i) => (
           <div
             key={s.id}
-            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: i <= step ? 'pointer' : 'default' }}
+            style={{
+              flex: 1, display: 'flex', flexDirection: 'column',
+              alignItems: 'center',
+              cursor: i <= step ? 'pointer' : 'default',
+            }}
             onClick={() => { if (i <= step) setStep(i); }}
           >
             <div style={{
               width: '100%', height: 3, borderRadius: 2,
               background: i <= step ? PINK : LIGHT_BORDER,
-              marginBottom: 5,
-              transition: 'background 0.2s',
+              marginBottom: 5, transition: 'background 0.2s',
             }} />
             <span
               className="wizard-step-label"
@@ -554,7 +625,11 @@ export default function PromptBuilderWizard({ onComplete }) {
         </button>
 
         <span style={{ fontSize: 11, color: MID }}>
-          {step < 5 && !canNext && 'Select an option to continue'}
+          {step < 5 && !canNext && (
+            step === 0 && !selections.topic.trim()
+              ? 'Enter your campaign topic to continue'
+              : 'Select an option to continue'
+          )}
         </span>
 
         {step < 5 ? (
