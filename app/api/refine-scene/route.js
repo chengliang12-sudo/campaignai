@@ -38,14 +38,17 @@ Rules:
 1. visual_prompt MUST still begin with the full master_style_seed string, unchanged
 2. Only modify the scene-specific part of visual_prompt after the master_style_seed
 3. voiceover_script may be updated if the feedback implies a tone or content change
-4. scene_number and duration_seconds must not change
-5. Interpret plain English naturally
+4. action_description should reflect any meaningful change to what happens in the scene
+5. emotional_beat is a 1-3 word label (e.g. "CONTEMPLATION", "ENERGY", "RESOLUTION") that captures the dominant emotional tone of the refined scene — update it if the feedback shifts the emotional register, otherwise keep it unchanged
+6. scene_number and duration_seconds must not change
+7. Interpret plain English naturally
 
 Return ONLY a valid JSON object with these fields:
 {
   "visual_prompt": "updated full prompt starting with master_style_seed",
   "voiceover_script": "updated or unchanged voiceover",
-  "action_description": "updated or unchanged scene description"
+  "action_description": "updated or unchanged scene description",
+  "emotional_beat": "updated or unchanged 1-3 word emotional label in UPPERCASE"
 }`,
       }],
     });

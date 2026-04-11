@@ -110,6 +110,7 @@ useEffect(() => {
           visual_prompt: data.visual_prompt || s.visual_prompt,
           voiceover_script: data.voiceover_script || s.voiceover_script,
           action_description: data.action_description || s.action_description,
+          emotional_beat: data.emotional_beat || s.emotional_beat,
         } : s
       ));
 
